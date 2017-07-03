@@ -1,0 +1,35 @@
+# vim temporary files
+*.swp
+*.swo
+*.swn
+*.swq
+
+tmp
+*.cray
+*.pgi
+*.intel
+*.gnu
+
+# executables
+*.out
+*.exe
+main
+*.cuda
+*.omp
+*.mpi
+
+# visualization output files
+*.bin
+*.bov
+*.png
+
+# compilation files
+*.o
+*.a
+*.lst
+*.cub
+*.ptx
+*.MOD
+*.mod
+
+unit_tests
