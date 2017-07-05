@@ -39,8 +39,8 @@ int main(int argc, char** argv) {
     bool use_shared = read_arg(argc, argv, 3, 0);
 
     // set domain size
-    size_t nx = 128+2;
-    size_t ny = (1 << pow)+2;
+    size_t nx = 128 + 2;
+    size_t ny = (1 << pow) + 2;
     double dt = 0.1;
 
     std::cout << "\n## " << nx << "x" << ny
@@ -50,8 +50,8 @@ int main(int argc, char** argv) {
     // allocate memory on device and host
     // note : allocate enough memory for the halo around the boundary
     auto buffer_size = nx*ny;
-    double *x0     = malloc_host<double>(buffer_size);
-    double *x1     = malloc_host<double>(buffer_size);
+    double *x0 = malloc_host<double>(buffer_size);
+    double *x1 = malloc_host<double>(buffer_size);
 
     double start_diffusion, time_diffusion;
     // set initial conditions of 0 everywhere
@@ -91,12 +91,12 @@ void write_to_file(int nx, int ny, double* data) {
     }
 
     std::ofstream fid("output.bov");
-    fid << "TIME: 0.0" << std::endl;
-    fid << "DATA_FILE: output.bin" << std::endl;
-    fid << "DATA_SIZE: " << nx << ", " << ny << ", 1" << std::endl;;
-    fid << "DATA_FORMAT: DOUBLE" << std::endl;
-    fid << "VARIABLE: phi" << std::endl;
-    fid << "DATA_ENDIAN: LITTLE" << std::endl;
-    fid << "CENTERING: nodal" << std::endl;
-    fid << "BRICK_SIZE: 1.0 1.0 1.0" << std::endl;
+    fid << "TIME: 0.0\n";
+    fid << "DATA_FILE: output.bin\n";
+    fid << "DATA_SIZE: " << nx << ", " << ny << ", 1\n";
+    fid << "DATA_FORMAT: DOUBLE\n";
+    fid << "VARIABLE: phi\n";
+    fid << "DATA_ENDIAN: LITTLE\n";
+    fid << "CENTERING: nodal\n";
+    fid << "BRICK_SIZE: 1.0 1.0 1.0\n";
 }

@@ -93,26 +93,31 @@ int main(int argc, char** argv) {
             MPI_Status  statuses[4];
             auto num_requests = 0;
 
-            // TODO: use x0, x1 on GPU for the following MPI calls
-            if (south >= 0) {
-                // x0(:, 0) <- south
-                MPI_Irecv(x0,    nx, MPI_DOUBLE, south, 0, MPI_COMM_WORLD,
-                          &requests[0]);
-                // x0(:, 1) -> south
-                MPI_Isend(x0+nx, nx, MPI_DOUBLE, south, 0, MPI_COMM_WORLD,
-                          &requests[1]);
-                num_requests += 2;
-            }
+#ifdef OPENACC_DATA
+            // TODO: data is managed by OpenACC; you need to pass the device
+            // pointers to the MPI calls to enable the fast data path (RDMA)
+#endif
+            {
+                if (south >= 0) {
+                    // x0(:, 0) <- south
+                    MPI_Irecv(x0,    nx, MPI_DOUBLE, south, 0, MPI_COMM_WORLD,
+                              &requests[0]);
+                    // x0(:, 1) -> south
+                    MPI_Isend(x0+nx, nx, MPI_DOUBLE, south, 0, MPI_COMM_WORLD,
+                              &requests[1]);
+                    num_requests += 2;
+                }
 
-            // exchange with north
-            if(north < mpi_size) {
-                // x0(:, ny-1) <- north
-                MPI_Irecv(x0+(ny-1)*nx, nx, MPI_DOUBLE, north, 0,
-                          MPI_COMM_WORLD, &requests[num_requests]);
-                // x0(:, ny-2) -> north
-                MPI_Isend(x0+(ny-2)*nx, nx, MPI_DOUBLE, north, 0,
-                          MPI_COMM_WORLD, &requests[num_requests+1]);
-                num_requests += 2;
+                // exchange with north
+                if(north < mpi_size) {
+                    // x0(:, ny-1) <- north
+                    MPI_Irecv(x0+(ny-1)*nx, nx, MPI_DOUBLE, north, 0,
+                              MPI_COMM_WORLD, &requests[num_requests]);
+                    // x0(:, ny-2) -> north
+                    MPI_Isend(x0+(ny-2)*nx, nx, MPI_DOUBLE, north, 0,
+                              MPI_COMM_WORLD, &requests[num_requests+1]);
+                    num_requests += 2;
+                }
             }
 
             MPI_Waitall(num_requests, requests, statuses);

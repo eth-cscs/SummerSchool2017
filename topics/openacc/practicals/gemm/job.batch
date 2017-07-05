@@ -1,0 +1,13 @@
+#!/bin/bash -l
+
+#SBATCH --nodes=1
+#SBATCH --exclusive
+#SBATCH --time=00:05:00
+#SBATCH --output=job.out
+#SBATCH --constraint=gpu
+#SBATCH --partition=normal
+##SBATCH --reservation=open
+##SBATCH --account=courses
+
+export OMP_NUM_THREADS=24 
+srun ./gemm.openacc 12
