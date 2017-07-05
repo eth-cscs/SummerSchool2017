@@ -5,6 +5,8 @@ PGI  ?= 0
 GCC  ?= 0
 VERBOSE ?= 0
 
+override CPPFLAGS += -I../common
+
 ifeq ($(CRAY), 1)
 CXX = CC
 FC  = ftn
@@ -37,20 +39,20 @@ BENCHMARKS=$(OPENACC_BENCHMARKS)
 
 all: $(BENCHMARKS)
 
-util.o: util.f03
-	$(FC) -c $(FCFLAGS) util.f03
+util.o: ../common/util.f03
+	$(FC) $(CPPFLAGS) -c $(FCFLAGS) $<
 
 blur.openacc: blur_openacc.cpp
-	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
 blur.openacc.fort: blur_openacc.f90 util.o
 	$(FC) $(FCFLAGS) $< util.o -o $@
 
 dot.openacc: dot_openacc.cpp
-	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
 dot.openacc.fort: dot_openacc.f90 util.o
-	$(FC) $(FCFLAGS) $< util.o -o $@
+	$(FC) $(CPPFLAGS) $(FCFLAGS) $< util.o -o $@
 
 clean:
 	rm -f $(BENCHMARKS) *.cub *.ptx *.o *.mod

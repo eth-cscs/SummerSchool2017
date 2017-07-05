@@ -4,6 +4,7 @@ CRAY ?= 1
 PGI  ?= 0
 GCC  ?= 0
 VERBOSE ?= 0
+override CPPFLAGS += -I../common
 
 CXX     = CC
 MPI_CXX = CC
@@ -46,32 +47,32 @@ BENCHMARKS=$(CXX_BENCHMARKS) $(FTN_BENCHMARKS)
 
 all: $(BENCHMARKS)
 
-util.o: util.f03
+util.o: ../common/util.f03
 	$(FC) -c $(FCFLAGS) $<
 
 diffusion2d.o: diffusion2d.f03
-	$(FC) -c $(FCFLAGS) $<
+	$(FC) $(CPPFLAGS) -c $(FCFLAGS) $<
 
 diffusion2d.openacc: diffusion2d_openacc.cpp diffusion2d.hpp
-	$(CXX) $(CXXFLAGS) -DOPENACC_DATA $< -o $@ $(LDFLAGS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DOPENACC_DATA $< -o $@ $(LDFLAGS)
 
 diffusion2d.openacc.cuda: diffusion2d_openacc.cpp diffusion2d.hpp
-	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
 diffusion2d.openacc.mpi: diffusion2d_openacc_mpi.cpp diffusion2d.hpp
-	$(MPI_CXX) $(CXXFLAGS) -DOPENACC_DATA $< -o $@ $(LDFLAGS)
+	$(MPI_CXX) $(CPPFLAGS) $(CXXFLAGS) -DOPENACC_DATA $< -o $@ $(LDFLAGS)
 
 diffusion2d.openacc.cuda.mpi: diffusion2d_openacc_mpi.cpp diffusion2d.hpp
-	$(MPI_CXX) $(CXXFLAGS) $< -o $@
+	$(MPI_CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
 diffusion2d.omp: diffusion2d_omp.cpp
-	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
 diffusion2d.openacc.fort: diffusion2d_openacc.f90 util.o diffusion2d.o
-	$(FC) $(FCFLAGS) $< util.o diffusion2d.o -o $@
+	$(FC) $(CPPFLAGS) $(FCFLAGS) $< util.o diffusion2d.o -o $@
 
 diffusion2d.openacc.fort.mpi: diffusion2d_openacc_mpi.f90 util.o diffusion2d.o
-	$(MPI_FC) $(FCFLAGS) $< util.o diffusion2d.o -o $@
+	$(MPI_FC) $(CPPFLAGS) $(FCFLAGS) $< util.o diffusion2d.o -o $@
 
 clean:
 	rm -f $(BENCHMARKS) *.cub *.ptx *.o *.mod

@@ -4,6 +4,7 @@ CRAY ?= 1
 PGI  ?= 0
 GCC  ?= 0
 VERBOSE ?= 0
+override CPPFLAGS += -I../common
 
 ifeq ($(CRAY), 1)
 CXX = CC
@@ -38,14 +39,14 @@ BENCHMARKS=$(OPENACC_BENCHMARKS)
 
 all: $(BENCHMARKS)
 
-util.o: util.f03
-	$(FC) -c $(FCFLAGS) $<
+util.o: ../common/util.f03
+	$(FC) $(CPPFLAGS) -c $(FCFLAGS) $<
 
 axpy.openacc: axpy_openacc.cpp
-	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
 axpy.openacc.fort: axpy_openacc.f90 util.o
-	$(FC) $(FCFLAGS) $< util.o -o $@ $(LDFLAGS)
+	$(FC) $(CPPFLAGS) $(FCFLAGS) $< util.o -o $@ $(LDFLAGS)
 
 clean:
 	rm -f $(BENCHMARKS) *.cub *.ptx *.o *.mod
