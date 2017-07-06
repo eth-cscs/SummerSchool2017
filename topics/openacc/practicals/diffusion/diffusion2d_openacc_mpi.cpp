@@ -148,9 +148,9 @@ int main(int argc, char** argv) {
                   << " points/second\n\n";
 
         std::cout << "writing to output.bin/bov" << std::endl;
+        write_to_file(nx, ny, x_res);
     }
 
-    write_to_file(nx, ny, x_res);
     MPI_Finalize();
     return 0;
 }

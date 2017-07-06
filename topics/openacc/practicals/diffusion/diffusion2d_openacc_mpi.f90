@@ -109,9 +109,9 @@ program main
      write(*, *) ''
      write(*, '(a)') 'writing to output.bin/bov'
      write(*, *) ''
+     call write_to_file(nx, ny, x1);
   endif
 
-  call write_to_file(nx, ny, x1);
   call MPI_Finalize(err)
 
 end program main
