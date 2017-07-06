@@ -75,4 +75,4 @@ diffusion2d.openacc.fort.mpi: diffusion2d_openacc_mpi.f90 util.o diffusion2d.o
 	$(MPI_FC) $(CPPFLAGS) $(FCFLAGS) $< util.o diffusion2d.o -o $@
 
 clean:
-	rm -f $(BENCHMARKS) *.cub *.ptx *.o *.mod
+	rm -f $(BENCHMARKS) *.cub *.ptx *.o *.mod output.*
