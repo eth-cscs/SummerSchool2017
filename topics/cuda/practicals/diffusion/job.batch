@@ -5,6 +5,7 @@
 #SBATCH --output=job%j.out
 #SBATCH --reservation=summerschool
 #SBATCH --time=00:10:00
+#SBATCH --constraint=gpu
 
 export MPICH_RDMA_ENABLED_CUDA=1
 for ranks in 1 2 4 8 16

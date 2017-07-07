@@ -1,4 +1,4 @@
-FLAGS=-arch=sm_35
+FLAGS=-arch=sm_60
 FLAGS+=-std=c++11
 FLAGS+=-O3
 

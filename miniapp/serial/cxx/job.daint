@@ -5,6 +5,7 @@
 #SBATCH --output=job%j.out
 #SBATCH --reservation=summerschool
 #SBATCH --time=00:02:00
+#SBATCH --constraint=gpu
 
 srun ./main 256 256 200 0.01 yes
 

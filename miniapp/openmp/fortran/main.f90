@@ -37,6 +37,7 @@ program diffusion_serial
     integer :: iseed(80), nseed
     integer :: flops_total
     integer :: output
+    integer :: reclen
 
     logical :: converged, cg_converged
     logical :: verbose_output
@@ -163,8 +164,9 @@ program diffusion_serial
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! binary data
     output=20
-    open(unit=output, file='output.bin', status='replace', form='unformatted')
-    write(output) x_new
+    inquire(iolength=reclen) x_new
+    open(unit=output, file='output.bin', status='replace', form='unformatted', access='direct', recl=reclen)
+    write(output, rec=1) x_new
     close(output)
     ! metadata
     open (unit=output, file='output.bov', status='replace')

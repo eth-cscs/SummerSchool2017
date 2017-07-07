@@ -39,7 +39,7 @@ PetscErrorCode DumpSolution(DM da, Vec u, AppCtx * ctx)
     FILE* output = fopen("output.bov", "wb");
     fprintf(output, "TIME: 0.0\n");
     fprintf(output, "DATA_FILE: output.bin\n");
-    fprintf(output, "DATA_SIZE: %d, %d, 1\n", ctx->nx, ctx->ny);
+    fprintf(output, "DATA_SIZE: %d %d 1\n", ctx->nx, ctx->ny);
     fprintf(output, "DATA_FORMAT: DOUBLE\n"); /* This will only work with a double-precision build */
     fprintf(output, "VARIABLE: phi\n");
     fprintf(output, "DATA_ENDIAN: LITTLE\n");

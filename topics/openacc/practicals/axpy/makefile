@@ -1,36 +1,34 @@
 .PHONY: all clean
 
-CRAY ?= 1
-PGI  ?= 0
-GCC  ?= 0
 VERBOSE ?= 0
 override CPPFLAGS += -I../common
 
-ifeq ($(CRAY), 1)
-CXX = CC
-FC = ftn
-CXXFLAGS = -hstd=c++11 -O3 -homp -hacc -dynamic
-FCFLAGS  = -O3 -homp -hacc -dynamic
-ifeq ($(VERBOSE), 1)
-CXXFLAGS += -hmsgs
-FCFLAGS  += -hmsgs
-endif
-endif
-
-ifeq ($(PGI), 1)
-CXX = pgc++
-CXXFLAGS = -DPGI -std=c++11 -O3 -acc -Minfo=accel -ta=tesla:cuda8.0
-FCFLAGS  = -O3 -acc -Minfo=accel -ta=tesla:cuda8.0
-LDFLAGS += -L$(CRAY_CUDATOOLKIT_DIR)/lib64 -lcudart
+ifeq ($(PE_ENV), CRAY)
+	CXX = CC
+	FC = ftn
+	CXXFLAGS = -hstd=c++11 -O3 -homp -hacc -dynamic
+	FCFLAGS  = -O3 -homp -hacc -dynamic
+	ifeq ($(VERBOSE), 1)
+		CXXFLAGS += -hmsgs
+		FCFLAGS  += -hmsgs
+	endif
 endif
 
-ifeq ($(GCC), 1)
-# not tested
-CXX = g++
-FC  = gfortran
-CXXFLAGS = -std=c++11 -O3 -fopenmp -fopenacc -I$(CRAY_CUDATOOLKIT_DIR)/include
-FCFLAGS  = -O3 -fopenacc -fopenmp
-LDFLAGS += -L$(CRAY_CUDATOOLKIT_DIR)/lib64 -lcudart
+ifeq ($(PE_ENV), PGI)
+	CXX = pgc++
+	FC  = pgf90
+	CXXFLAGS = -DPGI -std=c++11 -O3 -acc -Minfo=accel -ta=tesla:cuda8.0
+	FCFLAGS  = -O3 -acc -Minfo=accel -ta=tesla:cuda8.0
+	LDFLAGS += -L$(CRAY_CUDATOOLKIT_DIR)/lib64 -lcudart
+endif
+
+ifeq ($(PE_ENV), GNU)
+	# not tested
+	CXX = g++
+	FC  = gfortran
+	CXXFLAGS = -std=c++11 -O3 -fopenmp -fopenacc -I$(CRAY_CUDATOOLKIT_DIR)/include
+	FCFLAGS  = -O3 -fopenacc -fopenmp
+	LDFLAGS += -L$(CRAY_CUDATOOLKIT_DIR)/lib64 -lcudart
 endif
 
 OPENACC_BENCHMARKS= axpy.openacc axpy.openacc.fort

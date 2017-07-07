@@ -18,12 +18,11 @@ headerfile.close()
 
 rawFilename = header[1].split()[1]
 
-res_x = int(header[2].split()[1][:-1]) # remove the ',' at end of string
-res_y = int(header[2].split()[2][:-1]) # remove the ',' at end of string
+res_x, res_y = [int(x) for x in header[2].strip().split()[1:3]]
 print 'xdim %s' % res_x
 print 'ydim %s' % res_y
 
-data = np.fromfile(rawFilename, dtype=np.double, count=-1, sep='')
+data = np.fromfile(rawFilename, dtype=np.double, count=res_x*res_y, sep='')
 assert data.shape[0] == res_x * res_y, "raw data array does not match the resolution in the header"
 
 x = np.linspace(0., 1., res_x)
