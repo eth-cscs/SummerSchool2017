@@ -25,7 +25,8 @@ ifeq ($(PE_ENV), INTEL)
 endif
 ifeq ($(PE_ENV), PGI)
 	CXX = CC
-	CXXFLAGS = -g -std=c++11 -O3 -mp -acc -ta=tesla:cuda8.0
+	CXXFLAGS = -g -std=c++11 -O3 -mp -acc -ta=tesla:cc60
+	LDFLAGS += -ta=tesla:cc60
 	ifeq ($(VERBOSE), 1)
 		CXXFLAGS += -Minfo=accel
 	endif

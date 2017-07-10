@@ -5,7 +5,8 @@ ifeq ($(PE_ENV),PGI)
 	# -Mifno outputs extra diagnostic information
 	# -hacc generates accelerated kernels from openacc directives
 	FFLAGS  = -acc=verystrict
-	FFLAGS += -ta=tesla:cuda8.0
+	FFLAGS += -ta=tesla:cc60
+	LDFLAGS += -ta=tesla:cc60
 	#FFLAGS  = -Minfo=accel
 	FFLAGS += -Mpreprocess # use c-style preprocessing
 	FFLAGS += -g # debug flags
@@ -45,10 +46,10 @@ linalg.o: linalg.f90
 	$(FTN) $(FFLAGS) $(IFLAGS) -c linalg.f90 -o linalg.o
 
 main: $(OBJ) main.f90
-	$(FTN) $(FFLAGS) $(OBJ) main.f90  -o main
+	$(FTN) $(FFLAGS) $(OBJ) main.f90  -o main $(LDFLAGS)
 
 main_mpi: $(OBJ_MPI) main.f90
-	$(FTN) $(FFLAGS) $(OBJ_MPI) main.f90  -o main_mpi
+	$(FTN) $(FFLAGS) $(OBJ_MPI) main.f90  -o main_mpi $(LDFLAGS)
 
 clean:
 	rm -f main main_mpi
@@ -61,4 +62,3 @@ clean:
 	rm -f *.ptx
 	rm -f *.cub
 	rm -f output.*
-

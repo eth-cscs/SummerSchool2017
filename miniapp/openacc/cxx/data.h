@@ -65,13 +65,11 @@ class Field {
 
     void update_host()
     {
-        auto ptr = ptr_;
         // TODO: update host copy of this object; use ptr instead of ptr_
     }
 
     void update_device()
     {
-        auto ptr = ptr_;
         // TODO: update device copy of this object; use ptr instead of ptr_
     }
 
