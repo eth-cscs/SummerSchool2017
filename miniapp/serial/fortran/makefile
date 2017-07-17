@@ -2,7 +2,7 @@ FTN = gfortran
 FFLAGS = -O3 -fopenmp
 ifeq ($(PE_ENV),GNU)
 	FTN=ftn
-	FFLAGS=-O3 -fopenmp
+	FFLAGS=-O3 -fopenmp -dynamic
 endif
 ifeq ($(PE_ENV),CRAY)
 	FTN=ftn
@@ -14,7 +14,7 @@ ifeq ($(PE_ENV),PGI)
 endif
 ifeq ($(PE_ENV),INTEL)
 	FTN=ftn
-	FFLAGS=-O3 -openmp
+	FFLAGS=-O3 -qopenmp
 endif
 
 SOURCES = stats.f90 data.f90 operators.f90 linalg.f90

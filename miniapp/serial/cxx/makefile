@@ -14,7 +14,7 @@ ifeq ($(PE_ENV),CRAY)
 endif
 ifeq ($(PE_ENV),INTEL)
 	CXX=CC
-	CXXFLAGS=-O3 -openmp
+	CXXFLAGS=-O3 -qopenmp
 endif
 ifeq ($(PE_ENV),PGI)
 	CXX=CC
