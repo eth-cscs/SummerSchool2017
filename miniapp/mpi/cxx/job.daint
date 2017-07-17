@@ -3,7 +3,7 @@
 #SBATCH --job-name="summer-school"
 #SBATCH --nodes=4
 #SBATCH --output=job%j.out
-#SBATCH --reservation=summerschool
+#SBATCH --reservation=summer
 #SBATCH --time=00:15:00
 #SBARCH --constraint=gpu
 

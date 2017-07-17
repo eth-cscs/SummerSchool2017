@@ -3,7 +3,7 @@
 #SBATCH --job-name="summerschool-mpi-g2g"
 #SBATCH --nodes=16
 #SBATCH --output=job%j.out
-#SBATCH --reservation=summerschool
+#SBATCH --reservation=summer
 #SBATCH --time=00:10:00
 #SBATCH --constraint=gpu
 
