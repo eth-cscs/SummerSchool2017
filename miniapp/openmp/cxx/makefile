@@ -5,7 +5,7 @@ CXXFLAGS=-O3 -fopenmp
 # if on a cray system, set flags according to the compilation enviroment
 ifeq ($(PE_ENV),GNU)
 	CXX=CC
-	CXXFLAGS=-O3 -fopenmp
+	CXXFLAGS=-O3 -fopenmp -dynamic
 endif
 ifeq ($(PE_ENV),CRAY)
 	CXX=CC

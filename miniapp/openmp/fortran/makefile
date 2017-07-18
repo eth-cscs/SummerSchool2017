@@ -2,7 +2,7 @@ FTN = gfortran
 FFLAGS = -O3 -fopenmp
 ifeq ($(PE_ENV),GNU)
 	FTN=ftn
-	FFLAGS=-O3 -fopenmp
+	FFLAGS=-O3 -fopenmp -dynamic
 endif
 ifeq ($(PE_ENV),CRAY)
 	FTN=ftn
