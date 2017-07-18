@@ -53,7 +53,7 @@ PROGRAM struct
 
    WRITE (*,*) "Rank= ", rank, p(3)
 
-   CALL MPI_Type_free(particletype, ierror)
+   ! Free the type
    CALL MPI_Finalize(ierror)
 
 END PROGRAM
