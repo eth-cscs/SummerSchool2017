@@ -9,7 +9,7 @@ PROGRAM simple_send_recv
 ! CSCS take no responsibility for the use of the enclosed      !
 ! teaching material.                                           !
 !                                                              !
-! Purpose: a simple MPI-program printing "hello world!"        !
+! Purpose: a simple MPI-program point-to-point                 !
 !                                                              !
 ! Contents: F-Source                                           !
 !==============================================================!

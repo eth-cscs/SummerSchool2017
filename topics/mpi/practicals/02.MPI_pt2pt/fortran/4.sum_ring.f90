@@ -36,8 +36,8 @@ PROGRAM sum_ring
   CALL MPI_COMM_RANK(MPI_COMM_WORLD, my_rank, ierror)
   CALL MPI_COMM_SIZE(MPI_COMM_WORLD, size, ierror)
 
-  right = 0 !calculate the rank of the neighbor to your right
-  left  = 0 !calculate the rank of the neighbor to your left
+  right = -1 !calculate the rank of the neighbor to your right
+  left  = -1 !calculate the rank of the neighbor to your left
 
   ! below write ring addition code.
   ! do not use IF (RANK.EQ.0) THEN .. ELSE ..

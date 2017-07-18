@@ -33,6 +33,8 @@ PROGRAM ping_pong
   ! Process 0 sends a message(ping) to process 1.
   ! After receiving the message, process 1 sends a message (pong) to process 0
 
+  WRITE (*,*) 'Ping-ping completed - rank ',my_rank
+
   CALL MPI_FINALIZE(ierror)
 
 END PROGRAM
