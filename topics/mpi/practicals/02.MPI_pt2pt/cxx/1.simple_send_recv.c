@@ -23,7 +23,6 @@ int main(int argc, char *argv[])
 {
 
     int rank, size, number;
-    char string_comm[1024];
 
     MPI_Init(&argc, &argv);
 

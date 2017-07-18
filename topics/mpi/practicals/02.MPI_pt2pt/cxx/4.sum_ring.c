@@ -36,10 +36,10 @@ int main (int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 
-    right = /* get rank of neighbor to your right */
-    left  = /* get rank of neighbor to your left */
+    right = -1;/* get rank of neighbor to your right */
+    left  = -1;/* get rank of neighbor to your left */
 
-    /* Implement ring addition code 
+    /* Implement ring addition code
      * do not use if (rank == 0) .. else ..
      * every rank sends initialy its rank number to a neighbor, and then sends what
      * it receives from that neighbor, this is done n times with n = number of processes

@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
     /* Process 0 sends a message (ping) to process 1.
      * After receiving the message, process 1 sends a message (pong) to process 0.
      */
+    printf("Rank %d says: Ping-pong complete.\n",my_rank);
 
     MPI_Finalize();
     return 0;
