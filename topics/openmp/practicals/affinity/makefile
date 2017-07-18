@@ -1,6 +1,6 @@
 flags=-std=c++11
 ifeq ($(PE_ENV),GNU)
-	flags+=-fopenmp
+	flags+=-fopenmp -dynamic
 endif
 ifeq ($(PE_ENV),INTEL)
 	flags+=-openmp
