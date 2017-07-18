@@ -1,5 +1,8 @@
 PROGRAM ghost_cell_exchange
 
+! Use only 16 processes for this exercise
+! Send the ghost cell in two directions: left<->right and top<->bottom
+! ranks are connected in a cyclic manner, for instance, rank 0 and 12 are connected
 ! process decomposition on 4*4 grid 
 !  |-----------|
 !  | 0| 4| 8|12|
@@ -40,8 +43,6 @@ PROGRAM ghost_cell_exchange
   INTEGER status(MPI_STATUS_SIZE)
   INTEGER rank_top, rank_bottom
   INTEGER dims(2), periods(2)
-  INTEGER comm_cart
-  INTEGER data_ghost
 
   CALL MPI_Init(ierror)
   CALL MPI_Comm_rank(MPI_COMM_WORLD, rank, ierror)
@@ -87,8 +88,6 @@ PROGRAM ghost_cell_exchange
      END DO
   END IF
 
-  CALL MPI_Type_free(data_ghost, ierror)
-  CALL MPI_Comm_free(comm_cart, ierror)
   CALL MPI_Finalize(ierror)
 
 END PROGRAM

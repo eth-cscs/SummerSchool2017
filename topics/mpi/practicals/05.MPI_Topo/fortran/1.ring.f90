@@ -31,7 +31,6 @@ PROGRAM ring
   INTEGER :: new_comm
   INTEGER :: dims(max_dims)
   LOGICAL :: reorder, periods(max_dims)
-! INTEGER :: coords(max_dims)
 
 
   CALL MPI_Init(ierror)
@@ -64,7 +63,6 @@ PROGRAM ring
   END DO
 
   WRITE(*,*) "Rank", my_rank, ": Sum =", sum
-! WRITE(*,*) "Rank", my_rank, " Coord =", coords(1), ": Sum =", sum
 
   CALL MPI_Finalize(ierror)
 
