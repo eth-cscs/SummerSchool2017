@@ -6,6 +6,7 @@
 #SBATCH --constraint=gpu
 #SBATCH --time=00:10:00
 ##SBATCH --reservation=summer
+#SBARCH --constraint=gpu
 
 srun ./main 128 128 10 0.001 yes
 #srun ./main 512 512 50 0.0025 no

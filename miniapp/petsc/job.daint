@@ -5,5 +5,6 @@
 #SBATCH --output=job%j.out
 #SBATCH --reservation=summer
 #SBATCH --time=00:10:00
+#SBARCH --constraint=gpu
 
 srun ./main -ts_monitor -snes_monitor -ksp_monitor 
