@@ -17,12 +17,9 @@ sbatch -C gpu <<\EOF
 
 export MPICH_MPIIO_HINTS="*out.dat:cb_nodes=8"
 
-export MPICH_MPIIO_HINTS_DISPLAY=1
-
 echo "================================================"
 srun -N 3 ./a.out
 echo "================================================"
 cat -v $DW_JOB_STRIPED/out.dat
 
 EOF
-
