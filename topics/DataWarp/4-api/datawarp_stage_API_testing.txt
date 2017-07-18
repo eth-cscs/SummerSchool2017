@@ -1,0 +1,89 @@
+Procedure used to verify staged files:
+
+    cd $PFS
+    find . -type f -print0 | xargs -0 md5sum >/tmp/ORIG_DIR_MD5
+    cd $SO_LOC
+    find . -type f -print0 | xargs -0 md5sum >/tmp/STAGED_OUT_DIR_MD5
+    diff /tmp/ORIG_DIR_MD5 /tmp/STAGED_OUT_DIR_MD5
+
+
+Summary of datawarp_stager utility commands:
+
+datawarp_stager [in | out ] [target] [src]            #stage file
+datawarp_stager [dirin | dirout ] [target] [src]      #stage directory
+datawarp_stager [defout | defdirout ] [target] [src]  #deferred stageout
+datawarp_stager [actout | actdirout ] [target]        #activate deferred
+datawarp_stager [revout | revdirout ] [target]        #revoke deferred
+datawarp_stager [listin ]             [target] [src]* #stage list in
+datawarp_stager [listout | deflistout] [target]* [src]#stage list out
+datawarp_stager [actlistout | revlistout ] [target]*  #revoke list out
+datawarp_stager [qfile | qdir ] [target]              #query
+datawarp_stager [wfile | wdir ] [target]              #wait
+datawarp_stager [tfile | tdir ] [target]              #terminate
+
+
+Test setup:
+	$TMPDIR is the PFS directory target
+	$DW_JOB_STRIPED is the DW storage
+        the following files/dirs must exist on the PFS
+	  the content doesn't matter
+		$TMPDIR/stage_file
+		$TMPDIR/d2s (a directory with a bunch of files in it)
+		$TMPDIR/file1 $TMPDIR/file2 $TMPDIR/file3
+		$TMPDIR/big_file (>= 4GB)
+
+Tests:
+
+##Staging a file(stage_file) into and out of DW.
+./datawarp_stager in $DW_JOB_STRIPED/SIO $TMPDIR/stage_file
+./datawarp_stager wfile $DW_JOB_STRIPED/SIO
+./datawarp_stager qfile $DW_JOB_STRIPED/SIO
+./datawarp_stager out $DW_JOB_STRIPED/SIO $TMPDIR/stage_out_file
+./datawarp_stager wfile $DW_JOB_STRIPED/SIO
+./datawarp_stager qfile $DW_JOB_STRIPED/SIO
+
+## Staging a directory($TMPDIR/d2s) into and out of DW.
+rm -rf $DW_JOB_STRIPED/SIO
+mkdir $DW_JOB_STRIPED/SIO
+./datawarp_stager dirin $DW_JOB_STRIPED/SIO $TMPDIR/d2s
+./datawarp_stager wdir $DW_JOB_STRIPED/SIO
+./datawarp_stager qdir $DW_JOB_STRIPED/SIO
+mkdir $TMPDIR/d2s_soo
+./datawarp_stager dirout $DW_JOB_STRIPED/SIO $TMPDIR/d2s_soo 
+## NOTE-the stage out directory($TMPDIR/d2s_soo) must already exist.
+./datawarp_stager wdir $DW_JOB_STRIPED/SIO
+./datawarp_stager qdir $DW_JOB_STRIPED/SIO
+
+
+## Stage file using deferred stage out.  The first time 'revoke' the request.
+## The second attempt, 'actout' to complete the request.
+./datawarp_stager in $DW_JOB_STRIPED/SIF $TMPDIR/stage_file
+./datawarp_stager wfile $DW_JOB_STRIPED/SIF
+./datawarp_stager defout $DW_JOB_STRIPED/SIF $TMPDIR/def_stagefile
+./datawarp_stager qfile $DW_JOB_STRIPED/SIF
+./datawarp_stager revout $DW_JOB_STRIPED/SIF
+./datawarp_stager qfile $DW_JOB_STRIPED/SIF
+
+## This time actout the requset
+./datawarp_stager defout $DW_JOB_STRIPED/SIF $TMPDIR/def_stagefile
+./datawarp_stager actout $DW_JOB_STRIPED/SIF
+./datawarp_stager wfile $DW_JOB_STRIPED/SIF
+./datawarp_stager qfile $DW_JOB_STRIPED/SIF
+
+
+## Stage a list into and out of DW.
+rm -rf $DW_JOB_STRIPED/SIO/*
+./datawarp_stager listin $DW_JOB_STRIPED/SIO $TMPDIR/file1 $TMPDIR/file2 $TMPDIR/file3
+./datawarp_stager wdir $DW_JOB_STRIPED/SIO
+./datawarp_stager qdir $DW_JOB_STRIPED/SIO
+mkdir $TMPDIR/def_stagedir
+./datawarp_stager listout $DW_JOB_STRIPED/SIO/file1 $DW_JOB_STRIPED/SIO/file2 $DW_JOB_STRIPED/SIO/file3 $TMPDIR/def_stagedir
+./datawarp_stager wdir $DW_JOB_STRIPED/SIO
+./datawarp_stager qdir $DW_JOB_STRIPED/SIO
+
+## Terminate a staging request
+rm -rf $DW_JOB_STRIPED/SIO
+./datawarp_stager in $DW_JOB_STRIPED/SIO $TMPDIR/big_file
+./datawarp_stager tfile $DW_JOB_STRIPED/SIO
+./datawarp_stager qfile $DW_JOB_STRIPED/SIO
+
