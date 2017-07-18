@@ -14,7 +14,8 @@
  ****************************************************************/
 
 /* Use only 16 processes for this exercise
- * Send the ghost cell in two directions: left to right and right to left
+ * Send the ghost cell in two directions: left<->right and top<->bottom
+ * ranks are connected in a cyclic manner, for instance, rank 0 and 12 are connected
  *
  * process decomposition on 4*4 grid
  *
@@ -57,8 +58,6 @@ int main(int argc, char *argv[])
     double data[DOMAINSIZE*DOMAINSIZE];
     MPI_Request request;
     MPI_Status status;
-    MPI_Comm comm_cart;
-    MPI_Datatype data_ghost;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -80,7 +79,7 @@ int main(int argc, char *argv[])
     // an alternative solution would be to allow the reordering and to use the new communicator for the communication
     // then the MPI library has the opportunity to choose the best rank order with respect to performance
     // CREATE a cartesian communicator (4*4) with periodic boundaries and use it to find your neighboring
-    // ranks in all dimensions.
+    // ranks in all dimensions in a cyclic manner.
 
     //  derived datatype, create a datatype for sending the column
 
@@ -103,8 +102,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    MPI_Type_free(&data_ghost);
-    MPI_Comm_free(&comm_cart);
     MPI_Finalize();
 
     return 0;
