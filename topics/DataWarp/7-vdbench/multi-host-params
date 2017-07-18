@@ -1,0 +1,9 @@
+
+fsd=fsd,anchor=$dir,depth=1,width=1,files=1008,size=256M,shared=yes
+
+fwd=default,xfersize=$bs,fileio=random,fileselect=random,threads=16
+fwd=fwdr_$host,fsd=fsd,operation=read
+fwd=fwdw_$host,fsd=fsd,operation=write
+
+rd=rd1,fwd=fwd*,fwdrate=max,format=(restart,only)
+rd=rd2,fwd=fwd*,fwdrate=max,format=no,elapsed=720,interval=60,warmup=120
