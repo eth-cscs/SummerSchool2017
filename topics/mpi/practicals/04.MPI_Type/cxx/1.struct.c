@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 
     printf("rank= %d   %3.2f %3.2f %3.2f %3.2f %d %d\n", rank, p[3].x, p[3].y, p[3].z, p[3].velocity, p[3].n, p[3].type);
 
-    MPI_Type_free(&particletype);
+    /* Free type */
     MPI_Finalize();
     return 0;
 }
