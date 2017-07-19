@@ -35,6 +35,8 @@ void diffusion(const data::Field &U, data::Field &S)
 
     using data::x_old;
 
+    using data::comm_cart;
+
     double dxs = 1000. * (options.dx * options.dx);
     double alpha = options.alpha;
     int nx = domain.nx;
