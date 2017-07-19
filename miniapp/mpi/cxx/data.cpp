@@ -30,6 +30,8 @@ Field buffW;
 Discretization options;
 SubDomain      domain;
 
+MPI_Comm comm_cart;
+
 void SubDomain::init(int mpi_rank, int mpi_size, Discretization& discretization)
 {
     // determine the number of subdomains in the x and y dimensions
@@ -85,7 +87,7 @@ void SubDomain::print() {
                       << " local dims " << nx << " x " << ny
                       << std::endl;
         }
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(comm_cart);
     }
     double time = omp_get_wtime();
     // add artificial pause so that output doesn't pollute later output

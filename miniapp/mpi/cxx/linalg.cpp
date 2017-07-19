@@ -29,6 +29,7 @@ Field xold;
 using namespace operators;
 using namespace stats;
 using data::Field;
+using data::comm_cart;
 
 // initialize temporary storage fields used by the cg solver
 // I do this here so that the fields are persistent between calls

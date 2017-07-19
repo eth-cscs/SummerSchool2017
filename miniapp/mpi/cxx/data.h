@@ -171,5 +171,8 @@ extern Field buffW;
 extern Discretization options;
 extern SubDomain      domain;
 
+// MPI communicator
+extern MPI_Comm comm_cart;
+
 } // namespace data
 
