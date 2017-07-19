@@ -4,14 +4,13 @@ EXT=c
 #SUBFIX=_solution
 
 .SUFFIXES: .$(EXT)
-#all: 1 2 3 4 5 6
+#all: 1 2 3 4 5 
 
 1: 1.simple_send_recv$(SUBFIX)
 2: 2.ping_pong$(SUBFIX)
 3: 3.bandwidth$(SUBFIX)
 4: 4.sum_ring$(SUBFIX)
 5: 5.exchange_ghost_cells$(SUBFIX)
-6: 6.bugs_buffer$(SUBFIX)
 
 1.simple_send_recv$(SUBFIX).o: 1.simple_send_recv$(SUBFIX).$(EXT)
 	$(CC) $(CFLAGS) -c 1.simple_send_recv$(SUBFIX).$(EXT) -o 1.simple_send_recv$(SUBFIX).o
@@ -43,11 +42,6 @@ EXT=c
 5.exchange_ghost_cells$(SUBFIX): 5.exchange_ghost_cells$(SUBFIX).o
 	$(CC) $(CFLAGS) 5.exchange_ghost_cells$(SUBFIX).o -o 5.exchange_ghost_cells$(SUBFIX)
 
-6.bubs_buffer$(SUBFIX).o: 6.bubs_buffer$(SUBFIX).$(EXT)
-	$(CC) $(CFLAGS) -c 6.bubs_buffer$(SUBFIX).$(EXT) -o 6.bubs_buffer$(SUBFIX).o
-
-6.bubs_buffer$(SUBFIX): 6.bubs_buffer$(SUBFIX).o
-	$(CC) $(CFLAGS) 6.bubs_buffer$(SUBFIX).o -o 6.bubs_buffer$(SUBFIX)
 
 clean:
 	rm -f *.o
