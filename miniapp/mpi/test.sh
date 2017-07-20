@@ -1,4 +1,6 @@
 #!/bin/bash
+# for ease of use, first allocate 4 nodes with "salloc -N 4 -Cgpu --reservation=summer"
+# then copy your executable to this directory and type "./script.sh"
 
 echo "Only MPI"
 for dim in 256
