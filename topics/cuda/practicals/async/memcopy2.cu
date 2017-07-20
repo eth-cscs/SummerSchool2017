@@ -2,9 +2,9 @@
 
 #include <cuda.h>
 
-#include "util.h"
-#include "CudaStream.h"
-#include "CudaEvent.h"
+#include "util.hpp"
+#include "cuda_stream.hpp"
+#include "cuda_event.hpp"
 
 // CUDA kernel implementing axpy:
 //      y += alpha*x
@@ -33,19 +33,19 @@ int main(int argc, char** argv) {
     double* xd = malloc_device<double>(N);
     double* yd = malloc_device<double>(N);
 
-    double* xh = malloc_host_pinned<double>(N, 1.5);
-    double* yh = malloc_host_pinned<double>(N, 3.0);
-    double* y  = malloc_host_pinned<double>(N, 0.0);
+    double* xh = malloc_pinned<double>(N, 1.5);
+    double* yh = malloc_pinned<double>(N, 3.0);
+    double* y  = malloc_pinned<double>(N, 0.0);
 
     int chunk_size = N/num_chunks; // assume N % num_chunks == 0
 
     // precompute kernel launch configuration
     auto block_dim = 128;
-    auto grid_dim = (chunk_size+block_dim-1)/block_dim;
+    auto grid_dim = (chunk_size-1)/block_dim + 1;
 
-    CudaStream D2H_stream(true);
-    CudaStream H2D_stream(true);
-    CudaStream kernel_stream(true);
+    cuda_stream D2H_stream;
+    cuda_stream H2D_stream;
+    cuda_stream kernel_stream;
 
     auto start_event = D2H_stream.enqueue_event();
     for(int i=0; i<num_chunks; ++i) {

@@ -3,18 +3,18 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include "util.h"
+#include "util.hpp"
 
 // wrapper around cuda events
-class CudaEvent {
+class cuda_event {
   public:
 
-    CudaEvent() {
+    cuda_event() {
         auto status = cudaEventCreate(&event_);
         cuda_check_status(status);
     }
 
-    ~CudaEvent() {
+    ~cuda_event() {
         // note that cudaEventDestroy can be called on an event before is has
         // been reached in a stream, and the CUDA runtime will defer clean up
         // of the event until it has been completed.
@@ -34,7 +34,7 @@ class CudaEvent {
     }
 
     // returns time in seconds taken between this cuda event and another cuda event
-    double time_since(CudaEvent &other) {
+    double time_since(cuda_event& other) {
         float time_taken = 0.0f;
 
         auto status = cudaEventElapsedTime(&time_taken, other.event(), event_);

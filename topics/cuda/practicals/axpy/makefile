@@ -1,27 +1,18 @@
-NVCC_FLAGS=-arch=sm_35 -std=c++11 -O3
-GCC_FLAGS=-std=c++11 -O3 -fopenmp
+NVCC_FLAGS=-arch=sm_60 -std=c++11 -O3 -g -I../include
+GCC_FLAGS=-std=c++11 -O3 -fopenmp -I../include
 
 LINK=-lcublas -lcuda
 
-CUDA_BENCHMARKS= axpy_cublas.cuda axpy_kernel.cuda newton.cuda
-OPENMP_BENCHMARKS= axpy.omp
+all : axpy axpy_omp newton
 
-BENCHMARKS=$(CUDA_BENCHMARKS) $(OPENMP_BENCHMARKS)
+axpy : axpy.cu
+	nvcc $(NVCC_FLAGS) axpy.cu -o axpy $(LINK)
 
-all : $(BENCHMARKS)
+axpy_omp : axpy_omp.cpp
+	g++ ${GCC_FLAGS} axpy_omp.cpp -o axpy_omp -march=core-avx2
 
-axpy_cublas.cuda : axpy_cublas.cu util.h
-	nvcc $(NVCC_FLAGS) axpy_cublas.cu -o axpy_cublas.cuda $(LINK)
-
-axpy_kernel.cuda : axpy_kernel.cu util.h
-	nvcc $(NVCC_FLAGS) axpy_kernel.cu -o axpy_kernel.cuda $(LINK)
-
-newton.cuda : newton.cu util.h
-	nvcc $(NVCC_FLAGS) newton.cu -o newton.cuda $(LINK)
-
-axpy.omp : axpy_omp.cpp
-	g++ $(GCC_FLAGS) axpy_omp.cpp -o axpy.omp
+newton : newton.cu
+	nvcc $(NVCC_FLAGS) newton.cu -o newton $(LINK)
 
 clean :
-	rm -f *.cuda
-	rm -f *.omp
+	rm -f axpy axpy_omp newton *.nvvp

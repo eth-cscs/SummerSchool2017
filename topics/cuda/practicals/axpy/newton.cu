@@ -2,7 +2,7 @@
 
 #include <cuda.h>
 
-#include "util.h"
+#include "util.hpp"
 
 __host__
 double f(double x) {
@@ -38,8 +38,7 @@ int main(int argc, char** argv) {
     auto size_in_bytes = n * sizeof(double);
 
     std::cout << "memory copy overlap test of length n = " << n
-              << " : " << size_in_bytes/(1024.*1024.) << "MB"
-              << std::endl;
+              << " : " << size_in_bytes/1e9 << "MB\n";
 
     cuInit(0);
 
@@ -55,20 +54,22 @@ int main(int argc, char** argv) {
     copy_to_device(xh, xd, n);
     time_h2d += get_time();
 
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
     auto time_kernel = -get_time();
+
     // TODO: launch kernel (use block_dim and grid_dim calculated above)
-    cudaThreadSynchronize();
+
+    cudaDeviceSynchronize();
     time_kernel += get_time();
 
     auto time_d2h = -get_time();
     copy_to_host(xd, x, n);
     time_d2h += get_time();
 
-    std::cout << "-------\ntimings\n-------" << std::endl;
-    std::cout << "H2D    : " << time_h2d    << std::endl;
-    std::cout << "D2H    : " << time_d2h    << std::endl;
-    std::cout << "kernel : " << time_kernel << std::endl;
+    std::cout << "-------\ntimings\n-------\n";
+    std::cout << "H2D    : " << time_h2d    << " s\n";
+    std::cout << "D2H    : " << time_d2h    << " s\n";
+    std::cout << "kernel : " << time_kernel << " s\n";
 
     // check for errors
     auto errors = 0;
@@ -77,8 +78,8 @@ int main(int argc, char** argv) {
             errors++;
         }
     }
-    if(errors>0) std::cout << "\n============ FAILED with " << errors << " errors" << std::endl;
-    else         std::cout << "\n============ PASSED" << std::endl;
+    if(errors>0) std::cout << "\n============ FAILED with " << errors << " errors\n";
+    else         std::cout << "\n============ PASSED\n";
 
     cudaFree(xd);
     free(xh);
