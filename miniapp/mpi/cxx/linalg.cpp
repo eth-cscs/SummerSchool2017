@@ -78,7 +78,7 @@ double ss_norm2(Field const& x)
     for (int i = 0; i < N; i++)
         result += x[i] * x[i];
 
-    return result;
+    return sqrt(result);
 }
 
 // sets entries in a vector to value
