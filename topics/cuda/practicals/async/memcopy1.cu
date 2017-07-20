@@ -2,9 +2,9 @@
 
 #include <cuda.h>
 
-#include "util.h"
-#include "CudaStream.h"
-#include "CudaEvent.h"
+#include "util.hpp"
+#include "cuda_stream.hpp"
+#include "cuda_event.hpp"
 
 #define USE_PINNED
 
@@ -34,9 +34,9 @@ int main(int argc, char** argv) {
     double* y_device = malloc_device<double>(N);
 
     #ifdef USE_PINNED
-    double* x_host = malloc_host_pinned<double>(N, 1.5);
-    double* y_host = malloc_host_pinned<double>(N, 3.0);
-    double* y      = malloc_host_pinned<double>(N, 0.0);
+    double* x_host = malloc_pinned<double>(N, 1.5);
+    double* y_host = malloc_pinned<double>(N, 3.0);
+    double* y      = malloc_pinned<double>(N, 0.0);
     #else
     double* x_host = malloc_host<double>(N, 1.5);
     double* y_host = malloc_host<double>(N, 3.0);
@@ -44,25 +44,24 @@ int main(int argc, char** argv) {
     #endif
 
     // copy to device
-        CudaStream stream; // default stream
-        auto start_event = stream.enqueue_event();
+    cuda_stream stream; // default stream
+
+    auto start_event = stream.enqueue_event();
     copy_to_device_async<double>(y_host, y_device, N, stream.stream());
     copy_to_device_async<double>(x_host, x_device, N, stream.stream());
-        auto H2D_event = stream.enqueue_event();
+    auto H2D_event = stream.enqueue_event();
 
     // y += 2 * x
     auto block_dim = 128ul;
-    auto grid_dim = N/block_dim + (N%block_dim ? 1 : 0);
+    auto grid_dim = (N-1)/block_dim + 1;
 
     axpy<<<grid_dim, block_dim>>> (N, 2.0, x_device, y_device);
-
-        cuda_check_last_kernel("axpy kernel");
-        auto kernel_event = stream.enqueue_event();
+    auto kernel_event = stream.enqueue_event();
 
     // copy result back to host
     copy_to_host_async<double>(y_device, y, N, stream.stream());
-        auto end_event = stream.enqueue_event();
-        end_event.wait();
+    auto end_event = stream.enqueue_event();
+    end_event.wait();
 
     auto time_total = end_event.time_since(start_event);
     auto time_H2D   = H2D_event.time_since(start_event);

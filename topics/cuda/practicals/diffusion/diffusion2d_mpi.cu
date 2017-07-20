@@ -1,3 +1,5 @@
+#include <cstdlib>
+
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -6,9 +8,8 @@
 
 #include <mpi.h>
 
-#include "util.h"
-#include "CudaStream.h"
-#include "CudaEvent.h"
+#include "util.hpp"
+#include "cuda_stream.hpp"
 
 // 2D diffusion example with mpi
 // the grid has a fixed width of nx=128
@@ -25,7 +26,15 @@ void fill_gpu(T *v, T value, int n);
 
 __global__
 void diffusion(double *x0, double *x1, int nx, int ny, double dt) {
-    // TODO : copy stencil implemented in diffusion2d.cu
+    auto i = threadIdx.x + blockIdx.x*blockDim.x+1;
+    auto j = threadIdx.y + blockIdx.y*blockDim.y+1;
+
+    if (i<nx-1 && j<ny-1) {
+        auto pos = i + j*nx;
+        x1[pos] = x0[pos] + dt * (-4.*x0[pos]
+                   + x0[pos-nx] + x0[pos+nx]
+                   + x0[pos-1]  + x0[pos+1]);
+    }
 }
 
 int main(int argc, char** argv) {
@@ -47,6 +56,8 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
+    bool use_rdma = (nullptr!=std::getenv("MPICH_RDMA_ENABLED_CUDA"));
+
     // calculate global domain sizes
     if(ny%mpi_size) {
         std::cout << "error : global domain dimension " << ny
@@ -55,8 +66,10 @@ int main(int argc, char** argv) {
         exit(1);
     }
     else if(mpi_rank==0) {
-        std::cout << "\n## " << mpi_size << " MPI ranks" << std::endl;
-        std::cout << "## " << nx << "x" << ny
+        std::cout << "------------------------------------------\n";
+        std::cout << mpi_size << " MPI ranks, "
+                  << (use_rdma? "with RDMA\n": "no RDMA\n");
+        std::cout << nx << "x" << ny
                   << " : " << nx << "x" << ny/mpi_size << " per rank"
                   << " for " << nsteps << " time steps"
                   << " (" << nx*ny << " grid points)"
@@ -71,7 +84,7 @@ int main(int argc, char** argv) {
     // allocate memory on device and host
     // note : allocate enough memory for the halo around the boundary
     auto buffer_size = nx*ny;
-    double *x_host = malloc_host_pinned<double>(buffer_size);
+    double *x_host = malloc_pinned<double>(buffer_size);
     double *x0     = malloc_device<double>(buffer_size);
     double *x1     = malloc_device<double>(buffer_size);
 
@@ -89,20 +102,53 @@ int main(int argc, char** argv) {
         fill_gpu(x1+nx*(ny-1), 1., nx);
     }
 
-    CudaStream stream;
-    CudaStream copy_stream(true);
+    cuda_stream stream;
+    cuda_stream copy_stream();
     auto start_event = stream.enqueue_event();
+
+    const dim3 block_dim(16, 16);
+    const dim3 grid_dim(
+            (nx-3)/block_dim.x+1,
+            (ny-3)/block_dim.y+1);
+
+    MPI_Status status_north;
+    MPI_Status status_south;
+
+    auto recv_buffer = malloc_pinned<double>(nx);
+    auto send_buffer = malloc_pinned<double>(nx);
 
     // time stepping loop
     for(auto step=0; step<nsteps; ++step) {
 
-        // TODO perform halo exchange
+        // perform halo exchange
         // x0(:, 0)    <- south
         // x0(:, 1)    -> south
         // x0(:, ny-1) <- north
         // x0(:, ny-2) -> north
-
-        // TODO copy in the kernel launch from diffusion2d.cu
+        if (use_rdma) {
+            // TODO: fill in g2g communication
+        }
+        else {
+            if (mpi_rank>0) {
+                 copy_to_host(x0+nx, send_buffer, nx);
+                 MPI_Sendrecv(send_buffer, nx, MPI_DOUBLE,
+                            mpi_rank-1, 0,
+                            recv_buffer, nx, MPI_DOUBLE,
+                            mpi_rank-1, 1,
+                            MPI_COMM_WORLD, &status_south);
+                 copy_to_device(recv_buffer, x0, nx);
+            }
+            if (mpi_rank<mpi_size-1) {
+                 copy_to_host(x0+(ny-2)*nx, send_buffer, nx);
+                 MPI_Sendrecv(send_buffer, nx, MPI_DOUBLE,
+                            mpi_rank+1, 1,
+                            recv_buffer, nx, MPI_DOUBLE,
+                            mpi_rank+1, 0,
+                            MPI_COMM_WORLD, &status_north);
+                 copy_to_device(recv_buffer, x0+(ny-1)*nx, nx);
+            }
+        }
+        diffusion<<<grid_dim, block_dim>>>(x0, x1, nx, ny, dt);
 
         std::swap(x0, x1);
     }
@@ -114,11 +160,9 @@ int main(int argc, char** argv) {
     double time = stop_event.time_since(start_event);
 
     if(mpi_rank==0) {
-        std::cout << "## " << time << "s, "
+        std::cout << "time " << time << " s, "
                   << nsteps*(nx-2)*(ny-2)*mpi_size / time << " points/second"
-                  << std::endl << std::endl;
-
-        std::cout << "writing to output.bin/bov" << std::endl;
+                  << std::endl;
     }
     write_to_file(nx, ny, x_host, mpi_size, mpi_rank);
 

@@ -4,9 +4,8 @@
 
 #include <cuda.h>
 
-#include "util.h"
-#include "CudaStream.h"
-#include "CudaEvent.h"
+#include "util.hpp"
+#include "cuda_stream.hpp"
 
 // 2D diffusion example
 // the grid has a fixed width of nx=128
@@ -51,7 +50,7 @@ int main(int argc, char** argv) {
     // allocate memory on device and host
     // note : allocate enough memory for the halo around the boundary
     auto buffer_size = nx*ny;
-    double *x_host = malloc_host_pinned<double>(buffer_size);
+    double *x_host = malloc_host<double>(buffer_size);
     double *x0     = malloc_device<double>(buffer_size);
     double *x1     = malloc_device<double>(buffer_size);
 
@@ -65,8 +64,8 @@ int main(int argc, char** argv) {
     fill_gpu(x0+nx*(ny-1), 1., nx);
     fill_gpu(x1+nx*(ny-1), 1., nx);
 
-    CudaStream stream;
-    CudaStream copy_stream(true);
+    cuda_stream stream;
+    cuda_stream copy_stream();
     auto start_event = stream.enqueue_event();
 
     // time stepping loop
@@ -120,7 +119,7 @@ void write_to_file(int nx, int ny, double* data) {
     std::ofstream fid("output.bov");
     fid << "TIME: 0.0" << std::endl;
     fid << "DATA_FILE: output.bin" << std::endl;
-    fid << "DATA_SIZE: " << nx << " " << ny << " 1" << std::endl;;
+    fid << "DATA_SIZE: " << nx << ", " << ny << ", 1" << std::endl;;
     fid << "DATA_FORMAT: DOUBLE" << std::endl;
     fid << "VARIABLE: phi" << std::endl;
     fid << "DATA_ENDIAN: LITTLE" << std::endl;

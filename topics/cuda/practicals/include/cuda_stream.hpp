@@ -1,25 +1,18 @@
 #pragma once
 
-#include "util.h"
-#include "CudaEvent.h"
+#include "util.hpp"
+#include "cuda_event.hpp"
 
 // wrapper around cuda streams
-class CudaStream {
+class cuda_stream {
   public:
-    CudaStream()
-    : stream_(0) // use default stream
+    cuda_stream():
+        stream_(new_stream())
     {};
 
-    // flag whether or not to create a new stream or use default stream
-    CudaStream(bool create_new_stream) {
-        stream_ = create_new_stream ? new_stream() : 0;
-    }
-
-    ~CudaStream() {
-        if(stream_) {
-            auto status = cudaStreamDestroy(stream_);
-            cuda_check_status(status);
-        }
+    ~cuda_stream() {
+        auto status = cudaStreamDestroy(stream_);
+        cuda_check_status(status);
     }
 
     // return the CUDA stream handle
@@ -29,8 +22,8 @@ class CudaStream {
 
     // insert event into stream
     // returns immediately
-    CudaEvent enqueue_event() {
-        CudaEvent e;
+    cuda_event enqueue_event() {
+        cuda_event e;
 
         auto status = cudaEventRecord(e.event(), stream_);
         cuda_check_status(status);
@@ -40,7 +33,7 @@ class CudaStream {
 
     // make all future work on stream wait until event has completed.
     // returns immediately, not waiting for event to complete
-    void wait_on_event(CudaEvent &e) {
+    void wait_on_event(cuda_event &e) {
         auto status = cudaStreamWaitEvent(stream_, e.event(), 0);
         cuda_check_status(status);
     }
@@ -58,4 +51,3 @@ class CudaStream {
 
     cudaStream_t stream_;
 };
-
