@@ -12,8 +12,7 @@ bool run_test(F f, const char* name) {
     }
     printf("\033[1;32mpassed\033[0m\n");
     return true;
-}
-
+} 
 template <typename T>
 bool check_value(T value, T expected, T tol) {
     if(std::fabs(value-expected)>tol) {
