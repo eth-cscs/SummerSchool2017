@@ -128,7 +128,7 @@ class Field {
         xdim_ = xdim;
         ydim_ = ydim;
         host_ptr_ = new double[xdim*ydim];
-        auto success = cudaMalloc(&device_ptr_, xdim*ydim*sizeof(double));
+        cuda_check_status( cudaMalloc(&device_ptr_, xdim*ydim*sizeof(double)) );
     }
 
     // set to a constant value
