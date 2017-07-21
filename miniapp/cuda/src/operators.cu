@@ -57,6 +57,11 @@ namespace kernels {
     {
         // TODO : implement the interior stencil
         // EXTRA : can you make it use shared memory?
+        //  S(i,j) = -(4. + alpha) * U(i,j)               // central point
+        //                          + U(i-1,j) + U(i+1,j) // east and west
+        //                          + U(i,j-1) + U(i,j+1) // north and south
+        //                          + alpha * x_old(i,j)
+        //                          + dxs * U(i,j) * (1.0 - U(i,j));
     }
 
     __global__
@@ -76,8 +81,9 @@ namespace kernels {
             // EAST : i = nx-1
             auto pos = find_pos(nx-1, j);
             S[pos] = -(4. + alpha) * U[pos]
-                        + U[pos-1] + U[pos-nx] + U[pos+nx]
-                        + alpha*params.x_old[pos] + params.bndE[j]
+                        + U[pos-1] + params.bndE[j]
+                        + U[pos-nx] + U[pos+nx]
+                        + alpha*params.x_old[pos]
                         + dxs * U[pos] * (1.0 - U[pos]);
 
             // TODO : do the stencil on the WEST side
@@ -94,12 +100,16 @@ namespace kernels {
         auto alpha = params.alpha;
         auto dxs = params.dxs;
 
+        auto find_pos = [&nx] (size_t i, size_t j) {
+            return i + j * nx;
+        };
         if(i>0 && i<nx-1) {
             // NORTH : j = ny -1
-            auto pos = i + nx*(ny-1);
+            auto pos = find_pos(i, ny-1);
             S[pos] = -(4. + alpha) * U[pos]
-                        + U[pos-1] + U[pos+1] + U[pos-nx]
-                        + alpha*params.x_old[pos] + params.bndN[i]
+                        + U[pos-1] + U[pos+1]
+                        + U[pos-nx] + params.bndN[i]
+                        + alpha*params.x_old[pos]
                         + dxs * U[pos] * (1.0 - U[pos]);
 
             // TODO : do the stencil on the SOUTH side
@@ -124,31 +134,31 @@ namespace kernels {
         if(i==0) {
             // NORTH-EAST
             auto pos = find_pos(nx-1, ny-1);
-            S[pos] = -(4. + alpha) * U[pos]                     // central point
-                                   + U[pos-1]    + params.bndE[ny-1] // east and west
+            S[pos] = -(4. + alpha) * U[pos]
+                                   + U[pos-1]  + params.bndE[ny-1] // east and west
                                    + U[pos-nx] + params.bndN[nx-1] // north and south
                                    + alpha * params.x_old[pos]
                                    + dxs * U[pos] * (1.0 - U[pos]);
 
             // SOUTH-EAST
             pos = find_pos(nx-1, 0);
-            S[pos] = -(4. + alpha) * U[pos]                     // central point
-                                   + U[pos-1]    + params.bndE[0]      // east and west
+            S[pos] = -(4. + alpha) * U[pos]
+                                   + U[pos-1]    + params.bndE[0]  // east and west
                                    + params.bndS[nx-1]+ U[pos+nx]  // north and south
                                    + alpha * params.x_old[pos]
                                    + dxs * U[pos] * (1.0 - U[pos]);
 
             // SOUTH-WEST
             pos = find_pos(0, 0);
-            S[pos] = -(4. + alpha) * U[pos]                // central point
-                                   + params.bndW[0] + U[pos+1]    // east and west
+            S[pos] = -(4. + alpha) * U[pos]
+                                   + params.bndW[0] + U[pos+1]  // east and west
                                    + params.bndS[0] + U[pos+nx] // north and south
                                    + alpha * params.x_old[pos]
                                    + dxs * U[pos] * (1.0 - U[pos]);
 
             // NORTH-WEST
             pos = find_pos(0, ny-1);
-            S[pos] = -(4. + alpha) * U[pos]                 // central point
+            S[pos] = -(4. + alpha) * U[pos]
                                    + params.bndW[nx-1]+ U[pos+1] // east and west
                                    + U[pos-nx] + params.bndN[0]  // north and south
                                    + alpha * params.x_old[pos]
@@ -185,21 +195,25 @@ void diffusion(data::Field const& U, data::Field &S)
     };
 
     // TODO: apply stencil to the interior grid points
-    cuda_check_last_kernel("interior point stencil kernel launch");
+    cudaDeviceSynchronize();    // TODO: remove after debugging
+    cuda_check_last_kernel("interior kernel"); // TODO: remove after debugging
 
     // apply stencil at east-west boundary
     auto bnd_grid_dim_y = calculate_grid_dim(ny, 64);
     kernels::stencil_east_west<<<bnd_grid_dim_y, 64>>>(S.device_data(), U.device_data());
-    cuda_check_last_kernel("east-west stencil kernel");
+    cudaDeviceSynchronize();    // TODO: remove after debugging
+    cuda_check_last_kernel("east-west kernel"); // TODO: remove after debugging
 
     // apply stencil at north-south boundary
     auto bnd_grid_dim_x = calculate_grid_dim(nx, 64);
     kernels::stencil_north_south<<<bnd_grid_dim_x, 64>>>(S.device_data(), U.device_data());
-    cuda_check_last_kernel("north-south stencil kernel");
+    cudaDeviceSynchronize();    // TODO: remove after debugging
+    cuda_check_last_kernel("north-south kernel");   // TODO: remove after debugging
 
     // apply stencil at corners
     kernels::stencil_corners<<<1, 1>>>(S.device_data(), U.device_data());
-    cuda_check_last_kernel("corner stencil kernel");
+    cudaDeviceSynchronize();    // TODO: remove after debugging
+    cuda_check_last_kernel("corner kernel");    // TODO: remove after debugging
 }
 
 } // namespace operators
