@@ -1,7 +1,7 @@
 CXX=CC
 CUDA=nvcc
 CXXFLAGS=-O3 -fopenmp
-CUDAFLAGS=-O3 -std=c++11 -arch=sm_35
+CUDAFLAGS=-O3 -std=c++11 -arch=sm_60
 
 SOURCES = stats.cu  data.cu  operators.cu  linalg.cu    main.cu
 HEADERS = stats.h   data.h   operators.h   linalg.h
@@ -30,11 +30,11 @@ unit_tests.o: unit_tests.cu $(HEADERS)
 	$(CUDA) $(CUDAFLAGS) -c unit_tests.cu
 
 main: $(OBJ) main.o
-	$(CC) $(CXXFLAGS) $(OBJ) main.o -o main -lcublas
+	$(CXX) $(CXXFLAGS) $(OBJ) main.o -o main -lcublas
 
 unit_tests: data.o linalg.o unit_tests.o
-	$(CC) $(CXXFLAGS) unit_tests.o $(OBJ) -o unit_tests -lcublas
-	srun ./unit_tests
+	$(CXX) $(CXXFLAGS) unit_tests.o $(OBJ) -o unit_tests -lcublas
+	srun -Cgpu ./unit_tests
 
 clean:
 	rm -f main

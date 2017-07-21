@@ -1,8 +1,9 @@
 #include <iostream>
 
 #include <cuda.h>
+#include <cuda_runtime.h>
 
-#include "util.h"
+#include "util.hpp"
 
 int main(int argc, char** argv) {
     size_t pow = read_arg(argc, argv, 1, 16);
@@ -25,34 +26,28 @@ int main(int argc, char** argv) {
     double* y_host = malloc_host<double>(n, 3.0);
     double* y      = malloc_host<double>(n, 0.0);
 
-    copy_to_device<double>(x_host, x_device, n);
+    // start the nvprof profiling
+    cudaProfilerStart();
 
-    // copy to device
+    // copy memory to device
     auto start = get_time();
     copy_to_device<double>(x_host, x_device, n);
     copy_to_device<double>(y_host, y_device, n);
-    auto time_H2D = get_time() - start;
 
     // y = y + 2 * x
-    start = get_time();
     double alpha = 2.0;
     auto cublas_status =
         cublasDaxpy(cublas_handle, n, &alpha, x_device, 1, y_device, 1);
-    cudaDeviceSynchronize();
-    auto time_axpy = get_time() - start;
+
+    auto time_taken = get_time() - start;
+
+    std::cout << "time : " << time_taken << "s\n";
 
     // copy result back to host
-    start = get_time();
     copy_to_host<double>(y_device, y, n);
-    auto time_D2H = get_time() - start;
-
-    std::cout << "-------\ntimings\n-------" << std::endl;
-    std::cout << "H2D  : " << time_H2D << std::endl;
-    std::cout << "D2H  : " << time_D2H << std::endl;
-    std::cout << "axpy : " << time_axpy << std::endl;
 
     // check for errors
-    auto errors = 0;
+    int errors = 0;
     #pragma omp parallel for reduction(+:errors)
     for(auto i=0; i<n; ++i) {
         if(std::fabs(6.-y[i])>1e-15) {
@@ -60,13 +55,10 @@ int main(int argc, char** argv) {
         }
     }
 
-    if(errors>0) {
-        std::cout << "\n============ FAILED with "
-                  << errors << " errors" << std::endl;
-    }
-    else {
-        std::cout << "\n============ PASSED" << std::endl;
-    }
+    // stop the profiling session
+    cudaProfilerStop();
+
+    std::cout << (errors>0 ? "failed" : "passed") << " with " << errors << " errors\n";
 
     cudaFree(x_device);
     cudaFree(y_device);

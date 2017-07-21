@@ -4,9 +4,9 @@
 #include <omp.h>
 
 #define NO_CUDA
-#include "util.h"
+#include "util.hpp"
 
-void blur_twice_naiive(const double* in , double* out , int n) {
+void blur_twice_naive(const double* in , double* out , int n) {
     static double* buffer = malloc_host<double>(n);
 
     auto blur = [] (int pos, const double* u) {
@@ -24,7 +24,7 @@ void blur_twice_naiive(const double* in , double* out , int n) {
 }
 
 void blur_twice(const double* in , double* out , int n) {
-    auto const block_size = std::min(512, n-4);
+    auto const block_size = std::min(2048, n-4);
     assert((n-4)%block_size == 0);
     auto const num_blocks = (n-4)/block_size;
     static double* buffer = malloc_host<double>((block_size+4)*omp_get_max_threads());
@@ -52,13 +52,15 @@ void blur_twice(const double* in , double* out , int n) {
 int main(int argc, char** argv) {
     size_t pow    = read_arg(argc, argv, 1, 20);
     size_t nsteps = read_arg(argc, argv, 2, 100);
+    bool use_blocking = read_arg(argc, argv, 3, false);
     size_t n = (1 << pow) + 4;
 
     auto size_in_bytes = n * sizeof(double);
 
     std::cout << "dispersion 1D test of length n = " << n
-              << " : " << size_in_bytes/(1024.*1024.) << "MB"
-              << std::endl;
+              << " : " << size_in_bytes*1e-9 << "MB\n";
+
+    std::cout << "==== " << omp_get_max_threads() << " threads\n";
 
     auto x0 = malloc_host<double>(n+4, 0.);
     auto x1 = malloc_host<double>(n+4, 0.);
@@ -71,16 +73,15 @@ int main(int argc, char** argv) {
 
     auto tstart = get_time();
     for(auto step=0; step<nsteps; ++step) {
-        //blur_twice(x0, x1, n);
-        blur_twice_naiive(x0, x1, n);
+        if (use_blocking) blur_twice(x0, x1, n);
+        else              blur_twice_naive(x0, x1, n);
         std::swap(x0, x1);
     }
     auto time = get_time() - tstart;
 
-    for(auto i=0; i<std::min(decltype(n){20},n); ++i) std::cout << x0[i] << " "; std::cout << std::endl;
+    //for(auto i=0u; i<10u; ++i) std::cout << x0[i] << " "; std::cout << "\n";
 
-    std::cout << "==== that took " << time << " seconds"
-              << " (" << time/nsteps << "s/step)" << std::endl;
+    std::cout << "==== " << time << " seconds : " << 1e3*time/nsteps << " ms/step\n";
 
     return 0;
 }

@@ -15,36 +15,29 @@ namespace linalg {
 
 namespace kernels {
 
-    // TODO implement the missing linalg kernels
-
-    __global__
-    void add_scaled_diff(
-            double *y,
-            const double* x,
-            const double alpha,
-            const double *l,
-            const double *r,
-            const int n)
-    {
-        auto i = threadIdx.x + blockDim.x*blockIdx.x;
-
-        if(i < n) {
-            y[i] = x[i] + alpha * (l[i] - r[i]);
-        }
+// TODO implement the missing linalg kernels
+__global__
+void add_scaled_diff(
+        double *y,
+        const double* x,
+        const double alpha,
+        const double *l,
+        const double *r,
+        const int n)
+{
+    auto i = threadIdx.x + blockDim.x*blockIdx.x;
+    if(i < n) {
+        y[i] = x[i] + alpha * (l[i] - r[i]);
     }
+}
 
-    __global__
-    void copy(
-            double *y,
-            const double* x,
-            int n)
-    {
-        auto i = threadIdx.x + blockDim.x*blockIdx.x;
-
-        if(i < n) {
-            y[i] = x[i];
-        }
+__global__
+void copy(double *y, const double* x, int n) {
+    auto i = threadIdx.x + blockDim.x*blockIdx.x;
+    if(i < n) {
+        y[i] = x[i];
     }
+}
 } // namespace kernels
 
 bool cg_initialized = false;
@@ -60,7 +53,7 @@ Field xold;
 const int block_dim = 192;
 
 int calculate_grid_dim(const int block_dim, int n) {
-    return (n + block_dim -1) / block_dim;
+    return (n-1)/block_dim + 1;
 }
 
 using namespace operators;

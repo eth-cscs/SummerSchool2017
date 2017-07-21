@@ -12,8 +12,7 @@ bool run_test(F f, const char* name) {
     }
     printf("\033[1;32mpassed\033[0m\n");
     return true;
-}
-
+} 
 template <typename T>
 bool check_value(T value, T expected, T tol) {
     if(std::fabs(value-expected)>tol) {
@@ -25,20 +24,23 @@ bool check_value(T value, T expected, T tol) {
 
 bool test_scaled_diff() {
     auto n = 5;
-    Field x(n,1);
     Field y(n,1);
+    Field l(n,1);
+    Field r(n,1);
 
     for(auto i=0; i<n; ++i) {
-        x[i] = 3.0;
+        l[i] = 7.0;
+        r[i] = 2.0;
     }
-    x.update_device();
+    l.update_device();
+    r.update_device();
 
-    linalg::ss_scale(y, 2.0, x);
+    linalg::ss_scaled_diff(y, 2.0, l, r);
     y.update_host();
 
     bool status = true;
     for(auto i=0; i<n; ++i) {
-        status = status && check_value(y[i], 6.0, 1.e-13);
+        status = status && check_value(y[i], 10.0, 1.e-13);
     }
     return status;
 }

@@ -2,13 +2,14 @@
 
 #include <cuda.h>
 
-#include "util.h"
-#include "CudaStream.h"
-#include "CudaEvent.h"
+#include "util.hpp"
+#include "cuda_stream.hpp"
+#include "cuda_event.hpp"
 
+template <int Threads>
 __global__
 void blur_shared(const double *in, double* out, int n) {
-    extern __shared__ double buffer[];
+    __shared__ double buffer[Threads+2];
 
     auto block_start = blockDim.x * blockIdx.x;
     auto li = threadIdx.x + 1;
@@ -19,7 +20,7 @@ void blur_shared(const double *in, double* out, int n) {
         buffer[li] = in[gi];
         if(li==1) {
             buffer[0] = in[block_start];
-            buffer[blockDim.x+1] = in[block_start+blockDim.x+1];
+            buffer[Threads+1] = in[block_start+Threads+1];
         }
 
         __syncthreads();
@@ -60,15 +61,13 @@ void blur(const double *in, double* out, int n) {
 int main(int argc, char** argv) {
     size_t pow    = read_arg(argc, argv, 1, 20);
     size_t nsteps = read_arg(argc, argv, 2, 100);
+    bool use_shared = read_arg(argc, argv, 3, false);
     size_t n = 1 << pow;
 
-    auto size_in_bytes = n * sizeof(double);
+    const auto size_in_bytes = n * sizeof(double);
 
-    std::cout << "blur 1D test of length n = " << n
-              << " : " << size_in_bytes/(1024.*1024.) << "MB"
-              << std::endl;
-
-    cuInit(0);
+    std::cout << "-- blur 1D test of length n = " << n << " : " << size_in_bytes*1e-9 << "MB\n";
+    std::cout << "-- using " << (use_shared ? "shared": "direct") << " kernel\n";
 
     auto x_host = malloc_host<double>(n+2, 0.);
     // set boundary conditions to 1
@@ -83,16 +82,23 @@ int main(int argc, char** argv) {
     copy_to_device<double>(x_host, x1, n+2);
 
     // find the launch grid configuration
-    auto block_dim = 512ul;
-    auto grid_dim = (n+(block_dim-1))/block_dim;
+    constexpr auto block_dim = 128;
+    const auto grid_dim = (n+(block_dim-1))/block_dim;
 
-    blur<<<grid_dim, block_dim>>>(x0, x1, n);
+    if (use_shared)
+        blur_shared<block_dim><<<grid_dim, block_dim>>>(x0, x1, n);
+    else
+        blur<<<grid_dim, block_dim>>>(x0, x1, n);
 
-    CudaStream stream;
+    cuda_stream stream;
     auto start_event = stream.enqueue_event();
     for(auto step=0; step<nsteps; ++step) {
-        //blur<<<grid_dim, block_dim>>>(x0, x1, n);
-        blur_shared<<<grid_dim, block_dim, (block_dim+2)*sizeof(double)>>>(x0, x1, n);
+        if (use_shared) {
+            blur_shared<block_dim><<<grid_dim, block_dim>>>(x0, x1, n);
+        }
+        else {
+            blur<<<grid_dim, block_dim>>>(x0, x1, n);
+        }
         std::swap(x0, x1);
     }
     auto stop_event = stream.enqueue_event();
@@ -102,11 +108,7 @@ int main(int argc, char** argv) {
 
     stop_event.wait();
     auto time = stop_event.time_since(start_event);
-    std::cout << "==== that took " << time << " seconds"
-              << " (" << time/nsteps << "s/step)" << std::endl;
-
-
-    for(auto i=0; i<20; ++i) std::cout << x_host[i] << " "; std::cout << std::endl;
+    std::cout << "==== " << time << " seconds : " << 1e3*time/nsteps << " ms/step\n";
 
     return 0;
 }

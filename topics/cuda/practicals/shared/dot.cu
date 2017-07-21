@@ -2,7 +2,7 @@
 
 #include <cuda.h>
 
-#include "util.h"
+#include "util.hpp"
 
 // host implementation of dot product
 double dot_host(const double *x, const double* y, int n) {
@@ -14,17 +14,17 @@ double dot_host(const double *x, const double* y, int n) {
 }
 
 // TODO implement dot product kernel
-// hint : the result should be a single value in result[0]
+template <int THREADS>
 __global__
 void dot_gpu_kernel(const double *x, const double* y, double *result, int n) {
 }
 
 double dot_gpu(const double *x, const double* y, int n) {
-    static double* result = malloc_device<double>(1);
+    static double* result = malloc_managed<double>(1);
     // TODO call dot product kernel
-    double r;
-    copy_to_host<double>(result, &r, 1);
-    return r;
+
+    cudaDeviceSynchronize();
+    return *result;
 }
 
 int main(int argc, char** argv) {
@@ -34,10 +34,7 @@ int main(int argc, char** argv) {
     auto size_in_bytes = n * sizeof(double);
 
     std::cout << "dot product CUDA of length n = " << n
-              << " : " << size_in_bytes/(1024.*1024.) << "MB"
-              << std::endl;
-
-    cuInit(0);
+              << " : " << size_in_bytes*1e-9 << "MB\n";
 
     auto x_h = malloc_host<double>(n, 2.);
     auto y_h = malloc_host<double>(n);
@@ -54,7 +51,7 @@ int main(int argc, char** argv) {
 
     auto result   = dot_gpu(x_d, y_d, n);
     auto expected = dot_host(x_h, y_h, n);
-    std::cout << "expected " << expected << " got " << result << std::endl;
+    printf("expected %f got %f\n", (float)expected, (float)result);
 
     return 0;
 }

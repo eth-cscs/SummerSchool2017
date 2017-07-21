@@ -2,9 +2,9 @@
 
 #include <cuda.h>
 
-#include "util.h"
-#include "CudaStream.h"
-#include "CudaEvent.h"
+#include "util.hpp"
+#include "cuda_stream.hpp"
+#include "cuda_event.hpp"
 
 #define USE_PINNED
 // CUDA kernel implementing newton solve for
@@ -24,7 +24,7 @@ void newton(int n, double *x) {
 
     if(tid<n) {
         auto x0 = x[tid];
-        for(int i=0; i<5; ++i) {
+        for(int i=0; i<10; ++i) {
             x0 -= f(x0)/fp(x0);
         }
         x[tid] = x0;
@@ -46,18 +46,18 @@ int main(int argc, char** argv) {
     cuInit(0);
 
     double* xd = malloc_device<double>(N);
-    double* xh = malloc_host_pinned<double>(N, 1.5);
-    double* x  = malloc_host_pinned<double>(N);
+    double* xh = malloc_pinned<double>(N, 1.5);
+    double* x  = malloc_pinned<double>(N);
 
     int chunk_size = N/num_chunks; // assume N % num_chunks == 0
 
     // precompute kernel launch configuration
     auto block_dim = 128;
-    auto grid_dim = (chunk_size+block_dim-1)/block_dim;
+    auto grid_dim = (chunk_size-1)/block_dim + 1;
 
-    CudaStream D2H_stream(true);
-    CudaStream H2D_stream(true);
-    CudaStream kernel_stream(true);
+    cuda_stream D2H_stream;
+    cuda_stream H2D_stream;
+    cuda_stream kernel_stream;
 
     auto start_event = D2H_stream.enqueue_event();
     for(int i=0; i<num_chunks; ++i) {

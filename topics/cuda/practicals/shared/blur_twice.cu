@@ -2,13 +2,23 @@
 
 #include <cuda.h>
 
-#include "util.h"
-#include "CudaStream.h"
-#include "CudaEvent.h"
+#include "util.hpp"
+#include "cuda_stream.hpp"
+#include "cuda_event.hpp"
 
 __global__
+void blur(const double *in, double* out, int n) {
+    auto i = threadIdx.x + blockDim.x * blockIdx.x + 1;
+
+    if(i<n-1) {
+        out[i] = 0.25*(in[i-1] + 2.0*in[i] + in[i+1]);
+    }
+}
+
+template <int THREADS>
+__global__
 void blur_twice(const double *in, double* out, int n) {
-    extern __shared__ double buffer[];
+    __shared__ double buffer[THREADS+4];
 
     auto block_start = blockDim.x * blockIdx.x;
     auto block_end   = block_start + blockDim.x;
@@ -39,6 +49,7 @@ void blur_twice(const double *in, double* out, int n) {
 int main(int argc, char** argv) {
     size_t pow    = read_arg(argc, argv, 1, 20);
     size_t nsteps = read_arg(argc, argv, 2, 100);
+    bool fuse_loops = read_arg(argc, argv, 3, false);
     size_t n = (1 << pow) + 4;
 
     auto size_in_bytes = n * sizeof(double);
@@ -47,9 +58,8 @@ int main(int argc, char** argv) {
               << " : " << size_in_bytes/(1024.*1024.) << "MB"
               << std::endl;
 
-    cuInit(0);
-
     auto x_host = malloc_host<double>(n, 0.);
+
     // set boundary conditions to 1
     x_host[0]   = 1.0;
     x_host[1]   = 1.0;
@@ -64,18 +74,21 @@ int main(int argc, char** argv) {
     copy_to_device<double>(x_host, x1, n);
 
     // find the launch grid configuration
-    auto block_dim = 256;
+    constexpr auto block_dim = 128;
     auto grid_dim = (n-4)/block_dim + ((n-4)%block_dim ? 1 : 0);
     auto shared_size = sizeof(double)*(block_dim+4);
 
-    std::cout << "threads per block " << block_dim
-              << ", in " << grid_dim << " blocks"
-              << std::endl;
-
-    CudaStream stream;
+    cuda_stream stream;
     auto start_event = stream.enqueue_event();
     for(auto step=0; step<nsteps; ++step) {
-        blur_twice<<<grid_dim, block_dim, shared_size>>>(x0, x1, n);
+        if (fuse_loops) {
+            blur_twice<block_dim><<<grid_dim, block_dim, shared_size>>>(x0, x1, n);
+        }
+        else {
+            blur<<<grid_dim, block_dim>>>(x0, x1, n);
+            blur<<<grid_dim, block_dim>>>(x0+1, x1+1, n-2);
+        }
+
         std::swap(x0, x1);
     }
     auto stop_event = stream.enqueue_event();
@@ -83,12 +96,9 @@ int main(int argc, char** argv) {
     // copy result back to host
     copy_to_host<double>(x0, x_host, n);
 
-    for(auto i=0; i<std::min(decltype(n){20},n); ++i) std::cout << x_host[i] << " "; std::cout << std::endl;
-
     stop_event.wait();
     auto time = stop_event.time_since(start_event);
-    std::cout << "==== that took " << time << " seconds"
-              << " (" << time/nsteps << "s/step)" << std::endl;
+    std::cout << "==== " << time << " seconds : " << 1e3*time/nsteps << " ms/step\n";
 
     return 0;
 }

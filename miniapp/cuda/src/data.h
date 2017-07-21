@@ -11,7 +11,7 @@ namespace data
 
 namespace kernels {
     __global__
-    static void fill_device(double val, size_t n, double *ptr) {
+    static void fill_device(double* ptr, double val, size_t n) {
         auto i = threadIdx.x + blockIdx.x*blockDim.x;
         auto grid_step = blockDim.x*gridDim.x;
 
@@ -115,11 +115,11 @@ class Field {
     /////////////////////////////////////////////////
     // TODO : implement the body of update_host() and update_device()
     void update_host() {
-        // ...
+        // TODO
     }
 
     void update_device() {
-        // ...
+        // TODO
     }
 
     private:
@@ -128,7 +128,7 @@ class Field {
         xdim_ = xdim;
         ydim_ = ydim;
         host_ptr_ = new double[xdim*ydim];
-        auto success = cudaMalloc(&device_ptr_, xdim*ydim*sizeof(double));
+        cuda_check_status( cudaMalloc(&device_ptr_, xdim*ydim*sizeof(double)) );
     }
 
     // set to a constant value
@@ -137,7 +137,7 @@ class Field {
         auto const n = xdim_*ydim_;
         auto const thread_dim = 192;
         auto const block_dim = n/thread_dim + (n%thread_dim ? 1:0);
-        kernels::fill_device<<<block_dim, thread_dim>>>(val, n, device_ptr_);
+        kernels::fill_device<<<block_dim, thread_dim>>>(device_ptr_, val, n);
 
         // parallel fill on host
         #pragma omp parallel for
