@@ -19,15 +19,19 @@ void write_to_file(int nx, int ny, double* data);
 
 __global__
 void diffusion(double *x0, double *x1, int nx, int ny, double dt) {
-// TODO : implement stencil using 2d launch configuration
-// NOTE : i-major ordering, i.e. x[i,j] is indexed at location [i+j*nx]
-//  for(i=1; i<nx-1; ++i) {
-//    for(j=1; j<ny-1; ++j) {
+    int i = threadIdx.x + blockIdx.x*blockDim.x + 1;
+    int j = threadIdx.y + blockIdx.y*blockDim.y + 1;
+
+    if (i<nx-1 && j<ny-1) {
+        auto pos = i + nx*j;
+        x1[pos] = x0[pos] + dt * (-4.*x0[pos]
+                   + x0[pos-nx] + x0[pos+nx]
+                   + x0[pos-1] + x0[pos+1]);
+    }
 //        x1[i,j] = x0[i,j] + dt * (-4.*x0[i,j]
 //                   + x0[i,j-1] + x0[i,j+1]
 //                   + x0[i-1,j] + x0[i+1,j]);
-//    }
-//  }
+
 }
 
 int main(int argc, char** argv) {
@@ -71,6 +75,9 @@ int main(int argc, char** argv) {
     // time stepping loop
     for(auto step=0; step<nsteps; ++step) {
         // TODO: launch the diffusion kernel in 2D
+        dim3 block_dim(16, 16);
+        dim3 grid_dim((nx-2)/16, (ny-2)/16);
+        diffusion<<<grid_dim, block_dim>>>(x0, x1, nx, ny, dt);
 
         std::swap(x0, x1);
     }
