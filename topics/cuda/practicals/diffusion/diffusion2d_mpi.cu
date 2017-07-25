@@ -205,7 +205,7 @@ void write_to_file(int nx, int ny, double* data, int mpi_size, int mpi_rank) {
         std::ofstream fid("output.bov");
         fid << "TIME: 0.0" << std::endl;
         fid << "DATA_FILE: output.bin" << std::endl;
-        fid << "DATA_SIZE: " << nx << ", " << mpi_size*(ny-2) << ", 1" << std::endl;;
+        fid << "DATA_SIZE: " << nx << " " << mpi_size*(ny-2) << " 1" << std::endl;;
         fid << "DATA_FORMAT: DOUBLE" << std::endl;
         fid << "VARIABLE: phi" << std::endl;
         fid << "DATA_ENDIAN: LITTLE" << std::endl;
