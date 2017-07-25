@@ -38,6 +38,50 @@ void copy(double *y, const double* x, int n) {
         y[i] = x[i];
     }
 }
+
+__global__
+void fill(double* x, double value, int n) {
+    auto i = threadIdx.x + blockDim.x*blockIdx.x;
+    if(i < n) {
+        x[i] = value;
+    }
+}
+
+// computes y := alpha*x + y
+__global__
+void axpy(double* y, double alpha, const double* x, int n) {
+    auto i = threadIdx.x + blockDim.x*blockIdx.x;
+    if(i < n) {
+        y[i] += alpha*x[i];
+    }
+}
+
+// computes y = alpha*(l-r)
+__global__
+void scaled_diff(double* y, double alpha, const double* l, const double* r, int n) {
+    auto i = threadIdx.x + blockDim.x*blockIdx.x;
+    if(i < n) {
+        y[i] = alpha*(l[i]-r[i]);
+    }
+}
+
+// computes y := alpha*x
+__global__
+void scale(double* y, double alpha, double* x, int n) {
+    auto i = threadIdx.x + blockDim.x*blockIdx.x;
+    if(i < n) {
+        y[i] = alpha*x[i];
+    }
+}
+
+// computes linear combination of two vectors y := alpha*x + beta*z
+__global__
+void lcomb(double* y, double alpha, const double* x, double beta, const double* z, int n) {
+    auto i = threadIdx.x + blockDim.x*blockIdx.x;
+    if(i < n) {
+        y[i] = alpha*x[i] + beta*z[i];
+    }
+}
 } // namespace kernels
 
 bool cg_initialized = false;
@@ -156,6 +200,11 @@ void ss_copy(Field& y, Field const& x)
 // value is a scalar
 void ss_fill(Field& x, const double value)
 {
+    const int n = x.length();
+    auto grid_dim = calculate_grid_dim(block_dim, n);
+
+    kernels::fill<<<grid_dim, block_dim>>>
+        (x.device_data(), value, n);
 }
 
 // computes y := alpha*x + y
@@ -163,14 +212,23 @@ void ss_fill(Field& x, const double value)
 // alpha is a scalar
 void ss_axpy(Field& y, const double alpha, Field const& x)
 {
+    const int n = x.length();
+    auto grid_dim = calculate_grid_dim(block_dim, n);
+
+    kernels::axpy<<<grid_dim, block_dim>>>
+        (y.device_data(), alpha, x.device_data(), n);
 }
 
 // computes y = alpha*(l-r)
 // y, l and r are vectors of length N
 // alpha is a scalar
-void ss_scaled_diff(Field& y, const double alpha,
-    Field const& l, Field const& r)
+void ss_scaled_diff(Field& y, const double alpha, Field const& l, Field const& r)
 {
+    const int n = y.length();
+    auto grid_dim = calculate_grid_dim(block_dim, n);
+
+    kernels::scaled_diff<<<grid_dim, block_dim>>>
+        (y.device_data(), alpha, l.device_data(), r.device_data(), n);
 }
 
 // computes y := alpha*x
@@ -178,14 +236,23 @@ void ss_scaled_diff(Field& y, const double alpha,
 // y and x are vectors
 void ss_scale(Field& y, const double alpha, Field& x)
 {
+    const int n = y.length();
+    auto grid_dim = calculate_grid_dim(block_dim, n);
+
+    kernels::scale<<<grid_dim, block_dim>>>
+        (y.device_data(), alpha, x.device_data(), n);
 }
 
 // computes linear combination of two vectors y := alpha*x + beta*z
 // alpha and beta are scalar
 // y, x and z are vectors
-void ss_lcomb(Field& y, const double alpha, Field& x, const double beta,
-    Field const& z)
+void ss_lcomb(Field& y, const double alpha, Field& x, const double beta, Field const& z)
 {
+    const int n = y.length();
+    auto grid_dim = calculate_grid_dim(block_dim, n);
+
+    kernels::lcomb<<<grid_dim, block_dim>>>
+        (y.device_data(), alpha, x.device_data(), beta, z.device_data(), n);
 }
 
 // conjugate gradient solver
