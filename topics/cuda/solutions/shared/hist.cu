@@ -10,7 +10,7 @@ void histogram(int* x, int* bins, int n) {
     auto i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i<n) {
         const auto c = x[i];
-        bins[c]++;
+        atomicAdd(&bins[c], 1);
     }
 }
 
@@ -19,7 +19,8 @@ int main(void) {
     const int c = 16;
 
     int* x = malloc_managed<int>(n);
-    for (auto i=0; i<n; ++i) x[i] = rand()%c;
+    for (auto i=0; i<n; ++i)
+        x[i] = rand()%c;
 
     int* bins = malloc_managed<int>(c);
     std::fill(bins, bins+c, 0);
