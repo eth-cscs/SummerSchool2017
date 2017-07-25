@@ -123,8 +123,8 @@ void dgemm_cublas(size_t M, size_t N, size_t K,
             }
         }
 
-#ifdef __PGI
-        // Workaround for PGI 16.9
+#if __PGI
+        // Workaround for PGI
         #pragma acc update host(C[0:M*N])
 #endif
     }
