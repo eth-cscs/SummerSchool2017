@@ -1,5 +1,7 @@
-#Use this makefile if you want to use your own 
+# Use this makefile if you want to use your own
 # build of PETSC
+# (this file only differs from Makefile.local in the way
+#  that tests are launched)
 
 EXNAME = main
 
@@ -8,7 +10,7 @@ ALL : ${EXNAME}
 
 # We use PETSc's included variables and rules,
 #  so you must have PETSC_DIR and PETSC_ARCH
-#  defined to refere to a working PETSc build
+#  defined to refer to a working PETSc build
 include ${PETSC_DIR}/lib/petsc/conf/variables
 include ${PETSC_DIR}/lib/petsc/conf/rules
 
@@ -17,8 +19,7 @@ OBJ = main.o system.o dump.o
 ${EXNAME}: $(OBJ) chkopts
 	-${CLINKER} -o $@ $(OBJ) ${PETSC_TS_LIB}
 
-# use this instead of clean
-allclean : 
+clean ::
 	rm -f ${EXNAME} $(OBJ) output.* out.m
 
 # Some tests (with hard-coded bash color codes)
@@ -26,10 +27,12 @@ test : run_test1 run_test2
 
 TEST_OPTIONS=-ts_monitor -snes_monitor -ksp_monitor -ts_view
 
+SRUN=srun
+
 run_test1: ${EXNAME}
 	@rm -f test1.tmp
 	@echo "\033[34mRunning Test 1\033[0m"
-	@${MPIEXEC} -n 1 ./${EXNAME} ${TEST_OPTIONS}  \
+	@${SRUN} -n 1 ./${EXNAME} ${TEST_OPTIONS}  \
     2>&1 > test1.tmp
 	@diff test1.tmp testref/test1.ref && \
     echo "\033[32mSuccess\033[0m" || \
@@ -39,7 +42,7 @@ run_test1: ${EXNAME}
 run_test2: ${EXNAME}
 	@rm -f test2.tmp
 	@echo "\033[34mRunning Test 2\033[0m"
-	@${MPIEXEC} -n 2 ./${EXNAME} ${TEST_OPTIONS}  \
+	@${SRUN} -n 2 ./${EXNAME} ${TEST_OPTIONS}  \
     2>&1 > test2.tmp
 	@diff test2.tmp testref/test2.ref && \
     echo "\033[32mSuccess\033[0m" || \
