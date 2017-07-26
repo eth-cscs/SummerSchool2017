@@ -1,8 +1,9 @@
 # Makefile for use with Piz Daint, a Cray XC system.
 #
-# Also see makfile.local to use your own build of PETSc
+# Also see Makefile.customPetsc to use your own build of PETSc on Piz Daint,
+# or Makefile.local to use your own build locally
 #
-# Tested as of 2016.07.24
+# Tested as of 2017.07.26
 #
 # Required modules:
 #   PrgEnv-cray
@@ -15,23 +16,21 @@ SHELL=/bin/bash
 
 OBJ = main.o system.o dump.o
 
-# cray-petsc uses an older version of the library (3.5.1 as of 2016.07.24)
-#  which in particular lacks new read-only access to vectors
-SPECIAL_FLAGS=-DUSE_PETSC351_API
+main: $(OBJ)
+	cc -dynamic -o $@ $(OBJ)
 
-main: $(OBJ) 
-	cc -o $@ $(OBJ)
- 
 %.o : %.c
-	cc ${SPECIAL_FLAGS} -c -o $@ $<
+	cc -c -o $@ $<
 
-clean : 
+clean :
 	rm -f main $(OBJ) out.m output.*
 
 # Some tests, to be run in an interactive session (see salloc)
 test : run_test1 run_test2
 
 # Some PETSc command line options
+# Note that these are high-precision, so some variation
+# is expected when running on other systems
 TEST_OPTIONS=-ts_monitor -snes_monitor -ksp_monitor -ts_view
 
 run_test1: ${EXNAME}
