@@ -73,7 +73,7 @@ void dispersionV1(double *sIn, double *sOut, double *buffer,  double D, int iDim
         double *sN   = sIn    + INDEX(0,j+1,iDim);
         double *sS   = sIn    + INDEX(0,j-1,iDim);
         double *b    = buffer + INDEX(0,j,iDim);
-        #pragma ivdep
+        #pragma omp simd
         for(int i=1; i<iDim-1; i++){
             b[i] =  -4.*sP[i] + sP[i-1] + sP[i+1] + sN[i] + sS[i];
         }
@@ -86,7 +86,7 @@ void dispersionV1(double *sIn, double *sOut, double *buffer,  double D, int iDim
         double *bS   = buffer + INDEX(0,j-1,iDim);
         double *s    = sOut   + INDEX(0,j,iDim);
         double *sP   = sIn    + INDEX(0,j,iDim);
-        #pragma ivdep
+        #pragma omp simd
         for(int i=2; i<iDim-2; i++){
             s[i] =  sP[i] - D*(-4.*bP[i] + bP[i-1] + bP[i+1] + bN[i] + bS[i]);
         }
@@ -112,7 +112,7 @@ void dispersionV2(double *sIn, double *sOut, double *buffer,  double D, int iDim
             double *sN   = sIn    + INDEX(0,j+1,iDim);
             double *sS   = sIn    + INDEX(0,j-1,iDim);
             double *b    = buffer + INDEX(0,j,iDim);
-            #pragma ivdep
+            #pragma omp simd
             for(int i=1; i<iDim-1; i++){
                 b[i] =  -4.*sP[i] + sP[i-1] + sP[i+1] + sN[i] + sS[i];
             }
@@ -123,7 +123,7 @@ void dispersionV2(double *sIn, double *sOut, double *buffer,  double D, int iDim
             double *bS   = buffer + INDEX(0,j-1,iDim);
             double *s    = sOut   + INDEX(0,j,iDim);
             double *sP   = sIn    + INDEX(0,j,iDim);
-            #pragma ivdep
+            #pragma omp simd
             for(int i=2; i<iDim-2; i++){
                 s[i] =  sP[i] - D*(-4.*bP[i] + bP[i-1] + bP[i+1] + bN[i] + bS[i]);
             }
@@ -156,7 +156,7 @@ void dispersionV3(double *sIn, double *sOut, double **buffers,  double D, int iD
                 double *sN   = sIn    + INDEX(0,j+1,iDim);
                 double *sS   = sIn    + INDEX(0,j-1,iDim);
                 double *b    = buffer + INDEX(0,jb,iDim);
-                #pragma ivdep
+                #pragma omp simd
                 for(int i=1; i<iDim-1; i++){
                     b[i] =  -4.*sP[i] + sP[i-1] + sP[i+1] + sN[i] + sS[i];
                 }
@@ -168,7 +168,7 @@ void dispersionV3(double *sIn, double *sOut, double **buffers,  double D, int iD
                 double *bS   = buffer + INDEX(0,jb-1,iDim);
                 double *s    = sOut   + INDEX(0,j,iDim);
                 double *sP   = sIn    + INDEX(0,j,iDim);
-                #pragma ivdep
+                #pragma omp simd
                 for(int i=2; i<iDim-2; i++){
                     s[i] =  sP[i] - D*(-4.*bP[i] + bP[i-1] + bP[i+1] + bN[i] + bS[i]);
                 }
@@ -339,4 +339,3 @@ int scanArgs(int argc, char** argv, int *nx, int *ny, int *nt, int *blocky){
 
     return 1;
 }
-

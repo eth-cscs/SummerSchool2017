@@ -1,4 +1,4 @@
-all: dot.exe normalize.exe hello_world.exe sum_threads.exe pi.exe first_touch.exe
+all: dot.exe normalize.exe hello_world.exe sum_threads.exe pi.exe first_touch.exe laplace.exe dispersion.exe histogram.exe
 
 pi.exe : pi.cpp
 	CC -O3 pi.cpp -fopenmp -o pi.exe
@@ -17,6 +17,15 @@ sum_threads.exe : sum_threads.cpp
 
 first_touch.exe : first_touch.cpp
 	CC -O3 first_touch.cpp -fopenmp -o first_touch.exe
+
+histogram.exe : histogram.cpp
+	CC -O3 histogram.cpp -fopenmp -o histogram.exe
+
+dispersion.exe : dispersion.c
+	cc -fopenmp -std=c99 -O3 -Wall dispersion.c -o dispersion.exe
+
+laplace.exe : laplace.c
+	cc -fopenmp -std=c99 -O3 -Wall dispersion.c -o laplace.exe
 
 clean :
 	rm -f *.exe

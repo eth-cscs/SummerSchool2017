@@ -97,4 +97,3 @@ int main(void) {
     std::cout << "serial   : " << serial_time << " seconds" << std::endl;
     std::cout << "parallel : " << parallel_time << " seconds" << std::endl;
 }
-
