@@ -1,0 +1,5 @@
+Diffusion 2D performance matrix: 128x2^20
+
+        OpenMP | OpenACC | OpenACC+CUDA | MPI+OpenACC | MPI+OpenACC+CUDA |
+CRAY |   23.44 |    0.96 |         0.56 |        0.72 |             0.26 |
+PGI  |   18.49 |    1.03 |         0.60 |        0.60 |             0.27 |
