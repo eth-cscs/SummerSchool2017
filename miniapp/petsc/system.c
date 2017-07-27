@@ -19,11 +19,7 @@ static PetscErrorCode AssembleJacobian(Vec u,Mat J,void *ptr)
 
   PetscFunctionBeginUser;
 
-#ifdef USE_PETSC351_API
-  ierr = DMDAVecGetArray(da,u,&uarr);CHKERRQ(ierr);
-#else
   ierr = DMDAVecGetArrayRead(da,u,&uarr);CHKERRQ(ierr);
-#endif
   ierr = DMDAGetInfo(da,0,&M,&N,0,0,0,0,0,0,0,0,0,0);CHKERRQ(ierr);
   ierr = DMDAGetCorners(da,&xs,&ys,0,&xm,&ym,0);CHKERRQ(ierr);
 
@@ -76,11 +72,7 @@ static PetscErrorCode AssembleJacobian(Vec u,Mat J,void *ptr)
       ierr = MatSetValuesStencil(J,1,&row,num,col,v,INSERT_VALUES);CHKERRQ(ierr);
     }
   }
-#ifdef USE_PETSC351_API
-  ierr = DMDAVecRestoreArray(da,u,&uarr);CHKERRQ(ierr);
-#else
   ierr = DMDAVecRestoreArrayRead(da,u,&uarr);CHKERRQ(ierr);
-#endif
   ierr = MatAssemblyBegin(J,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(J,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -123,11 +115,7 @@ PetscErrorCode RHSFunction(TS ts,PetscReal t,Vec u,Vec f,void* ptr)
      meaning that we can access the required "ghost" or "halo" data
      which was just obtained from neighboring processes via MPI calls.
     */
-#ifdef USE_PETSC351_API
-  ierr = DMDAVecGetArray(da,u_local,&uarr);CHKERRQ(ierr);
-#else
   ierr = DMDAVecGetArrayRead(da,u_local,&uarr);CHKERRQ(ierr);
-#endif
   ierr  = DMDAVecGetArray(da,f,&farr);CHKERRQ(ierr);
   ierr  = DMDAGetInfo(da,0,&M,&N,0,0,0,0,0,0,0,0,0,0);CHKERRQ(ierr);
   ierr  = DMDAGetCorners(da,&xs,&ys,0,&xm,&ym,0);CHKERRQ(ierr);
@@ -154,11 +142,7 @@ PetscErrorCode RHSFunction(TS ts,PetscReal t,Vec u,Vec f,void* ptr)
       farr[j][i] = val;
     }
   }
-#ifdef USE_PETSC351_API
-  ierr = DMDAVecRestoreArray(da,u_local,&uarr);CHKERRQ(ierr);
-#else
   ierr = DMDAVecRestoreArrayRead(da,u_local,&uarr);CHKERRQ(ierr);
-#endif
   ierr  = DMDAVecRestoreArray(da,f,&farr);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
