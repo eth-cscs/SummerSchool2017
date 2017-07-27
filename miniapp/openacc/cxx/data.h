@@ -65,12 +65,12 @@ class Field {
 
     void update_host()
     {
-        // TODO: update host copy of this object; use ptr instead of ptr_
+        // TODO: update host copy of this object
     }
 
     void update_device()
     {
-        // TODO: update device copy of this object; use ptr instead of ptr_
+        // TODO: update device copy of this object
     }
 
     double* data()
