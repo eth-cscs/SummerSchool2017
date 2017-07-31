@@ -52,5 +52,5 @@ More Information
  You can also modify the included job.daint and submit with sbatch.
 
  To view the .bov file that is generated (only for single-processor runs with the -dump option), we borrow the procedure from the miniapp:
-
+    srun ./main -dump
     ../../scripts/plot.sh
