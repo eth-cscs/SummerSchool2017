@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "util.h"
+#include <openacc.h>
 
 
 // Conventions: A -> MxK, B -> KxN, C -> MxN, all row major
@@ -110,6 +111,12 @@ void dgemm_cublas(size_t M, size_t N, size_t K,
         std::cerr << "CUBLAS initialization failed\n";
         exit(1);
     }
+
+    // Get OpenACC default stream
+    cudaStream_t accStream = (cudaStream_t) acc_get_cuda_stream(acc_async_sync);
+
+    // Set cuBLAS stream
+    cublasSetStream(handle, accStream);
 
     auto cublas_gemm = gemm_fn<T>();
 
